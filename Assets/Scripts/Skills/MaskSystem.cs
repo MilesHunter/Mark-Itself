@@ -4,6 +4,7 @@ using System.Collections.Generic;
 public class MaskSystem : MonoBehaviour
 {
     [Header("Mask Settings")]
+    [SerializeField] private FilterColor currentMaskColor = FilterColor.Red;
     [SerializeField] private float maskRadius = 2f;
     [SerializeField] private LayerMask hiddenObjectLayer = 1;
     [SerializeField] private GameObject maskPrefab; // 蒙版预制体
@@ -25,6 +26,7 @@ public class MaskSystem : MonoBehaviour
     private Transform followTarget;
 
     // 事件
+    public System.Action<FilterColor> OnMaskColorChanged;
     public System.Action<bool> OnMaskStateChanged;
     public System.Action<int> OnObjectsRevealed;
 
@@ -179,24 +181,32 @@ public class MaskSystem : MonoBehaviour
         // 清空之前的列表
         HideRevealedObjects();
 
+        // 获取当前蒙版颜色对应的标签
+        string targetTag = GameConstants.GetColorTag(currentMaskColor);
+
         // 在检测范围内查找隐藏物体
         Collider2D[] colliders = Physics2D.OverlapCircleAll(
             followTarget.position, detectionRadius, hiddenObjectLayer);
 
         foreach (Collider2D col in colliders)
         {
-            if (col.CompareTag(GameConstants.TAG_HIDDEN_OBJECT))
+            // 检查物体是否有HiddenObject组件且颜色匹配
+            if (col.CompareTag(targetTag))
             {
-                GameObject hiddenObj = col.gameObject;
+                HiddenObject hiddenComponent = col.GetComponent<HiddenObject>();
+                if (hiddenComponent != null)
+                {
+                    GameObject hiddenObj = col.gameObject;
 
-                // 显示隐藏物体
-                RevealObject(hiddenObj);
-                revealedObjects.Add(hiddenObj);
+                    // 显示隐藏物体
+                    RevealObject(hiddenObj);
+                    revealedObjects.Add(hiddenObj);
+                }
             }
         }
 
         OnObjectsRevealed?.Invoke(revealedObjects.Count);
-        Debug.Log($"Revealed {revealedObjects.Count} hidden objects");
+        Debug.Log($"Revealed {revealedObjects.Count} hidden objects with color: {currentMaskColor}");
     }
 
     private void RevealObject(GameObject obj)
@@ -256,6 +266,22 @@ public class MaskSystem : MonoBehaviour
         Debug.Log($"Playing reveal effect at {position}");
     }
 
+    public void SetMaskColor(FilterColor newColor)
+    {
+        if (currentMaskColor == newColor) return;
+
+        currentMaskColor = newColor;
+
+        // 如果蒙版当前激活，重新扫描物体
+        if (isMaskActive)
+        {
+            RevealHiddenObjectsInRange();
+        }
+
+        OnMaskColorChanged?.Invoke(currentMaskColor);
+        Debug.Log($"Mask color changed to: {currentMaskColor}");
+    }
+
     // 设置跟随目标
     public void SetFollowTarget(Transform target)
     {
@@ -291,6 +317,11 @@ public class MaskSystem : MonoBehaviour
     public int GetRevealedObjectsCount()
     {
         return revealedObjects.Count;
+    }
+
+    public FilterColor GetMaskColor()
+    {
+        return currentMaskColor;
     }
 
     public float GetMaskRadius()

@@ -15,6 +15,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("Skills")]
     [SerializeField] private SkillType currentSkill = SkillType.FilterSystem;
+    [SerializeField] private FilterColor currentColor = FilterColor.Red;
 
     // Components
     private Rigidbody2D rb;
@@ -27,6 +28,7 @@ public class PlayerController : MonoBehaviour
     private bool wasGrounded;
     private float coyoteTimeCounter;
     private float jumpBufferCounter;
+    private bool controlsEnabled = true;
 
     // Skill system
     private FilterSystem filterSystem;
@@ -43,12 +45,13 @@ public class PlayerController : MonoBehaviour
 
     public enum SkillType
     {
-        FullFilter,
-        PartMask
+        FilterSystem,
+        MaskSystem
     }
 
     // Events
     public System.Action<SkillType> OnSkillChanged;
+    public System.Action<FilterColor> OnColorChanged;
     public System.Action<Vector3> OnPlayerRespawn;
 
     void Awake()
@@ -60,6 +63,12 @@ public class PlayerController : MonoBehaviour
         // Get skill components
         filterSystem = GetComponent<FilterSystem>();
         maskSystem = GetComponent<MaskSystem>();
+
+        // Initialize skill systems with current color
+        if (filterSystem != null)
+            filterSystem.SetFilterColor(currentColor);
+        if (maskSystem != null)
+            maskSystem.SetMaskColor(currentColor);
 
         // Set initial respawn point
         currentRespawnPoint = transform.position;
@@ -80,6 +89,8 @@ public class PlayerController : MonoBehaviour
 
     private void HandleInput()
     {
+        if (!controlsEnabled) return;
+
         // Movement input
         horizontalInput = Input.GetAxisRaw("Horizontal");
 
@@ -262,8 +273,42 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public void SetSkillColor(FilterColor newColor)
+    {
+        if (currentColor == newColor) return;
+
+        currentColor = newColor;
+
+        // 更新当前技能系统的颜色
+        switch (currentSkill)
+        {
+            case SkillType.FilterSystem:
+                if (filterSystem != null)
+                    filterSystem.SetFilterColor(currentColor);
+                break;
+
+            case SkillType.MaskSystem:
+                if (maskSystem != null)
+                    maskSystem.SetMaskColor(currentColor);
+                break;
+        }
+
+        OnColorChanged?.Invoke(currentColor);
+        Debug.Log($"Skill color changed to: {currentColor}");
+    }
+
     // Public methods for external systems
+    public FilterColor GetCurrentColor()
+    {
+        return currentColor;
+    }
+
     public SkillType GetCurrentSkill()
+    {
+        return currentSkill;
+    }
+
+    public SkillType GetCurrentSkillType()
     {
         return currentSkill;
     }
@@ -276,6 +321,16 @@ public class PlayerController : MonoBehaviour
     public Vector3 GetRespawnPoint()
     {
         return currentRespawnPoint;
+    }
+
+    public void SetControlsEnabled(bool enabled)
+    {
+        controlsEnabled = enabled;
+    }
+
+    public bool GetControlsEnabled()
+    {
+        return controlsEnabled;
     }
 
     // Debug visualization
