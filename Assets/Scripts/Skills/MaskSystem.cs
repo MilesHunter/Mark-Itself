@@ -16,7 +16,6 @@ public class MaskSystem : MonoBehaviour
     // 蒙版组件
     private SpriteMask spriteMask;
     private GameObject maskObject;
-    private CircleCollider2D detectionCollider;
 
     // 当前被蒙版影响的隐藏物体列表
     private List<GameObject> revealedObjects = new List<GameObject>();
@@ -45,8 +44,6 @@ public class MaskSystem : MonoBehaviour
             spriteMask = maskObject.GetComponent<SpriteMask>();
         }
 
-        // 创建检测范围
-        CreateDetectionArea();
     }
 
     void Start()
@@ -73,23 +70,6 @@ public class MaskSystem : MonoBehaviour
 
         // 初始状态为不可见
         maskObject.SetActive(false);
-    }
-
-    private void CreateDetectionArea()
-    {
-        // 创建检测区域GameObject
-        GameObject detectionArea = new GameObject("DetectionArea");
-        detectionArea.transform.SetParent(transform);
-        detectionArea.transform.localPosition = Vector3.zero;
-
-        // 添加CircleCollider2D作为触发器
-        detectionCollider = detectionArea.AddComponent<CircleCollider2D>();
-        detectionCollider.radius = detectionRadius;
-        detectionCollider.isTrigger = true;
-
-        // 添加检测脚本
-        MaskDetectionArea detectionScript = detectionArea.AddComponent<MaskDetectionArea>();
-        detectionScript.Initialize(this);
     }
 
     private Sprite CreateCircleMaskSprite()
@@ -167,13 +147,6 @@ public class MaskSystem : MonoBehaviour
         // 更新蒙版大小
         float scale = maskRadius * 2f;
         maskObject.transform.localScale = Vector3.one * scale;
-
-        // 更新检测区域
-        if (detectionCollider != null)
-        {
-            detectionCollider.transform.position = followTarget.position;
-            detectionCollider.radius = detectionRadius;
-        }
     }
 
     private void RevealHiddenObjectsInRange()
@@ -298,16 +271,6 @@ public class MaskSystem : MonoBehaviour
         }
     }
 
-    // 设置检测半径
-    public void SetDetectionRadius(float radius)
-    {
-        detectionRadius = radius;
-        if (detectionCollider != null)
-        {
-            detectionCollider.radius = radius;
-        }
-    }
-
     // 公共方法
     public bool IsMaskActive()
     {
@@ -368,34 +331,6 @@ public class MaskSystem : MonoBehaviour
                     }
                 }
             }
-        }
-    }
-}
-
-// 蒙版检测区域辅助脚本
-public class MaskDetectionArea : MonoBehaviour
-{
-    private MaskSystem maskSystem;
-
-    public void Initialize(MaskSystem system)
-    {
-        maskSystem = system;
-    }
-
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        if (other.CompareTag(GameConstants.TAG_HIDDEN_OBJECT) && maskSystem.IsMaskActive())
-        {
-            // 当新的隐藏物体进入检测范围时，重新扫描
-            // 这里可以优化为只处理单个物体，但为了简单起见，重新扫描所有
-        }
-    }
-
-    private void OnTriggerExit2D(Collider2D other)
-    {
-        if (other.CompareTag(GameConstants.TAG_HIDDEN_OBJECT) && maskSystem.IsMaskActive())
-        {
-            // 当隐藏物体离开检测范围时，重新扫描
         }
     }
 }
