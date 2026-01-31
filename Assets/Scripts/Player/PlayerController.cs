@@ -30,6 +30,7 @@ public class PlayerController : MonoBehaviour
     private float coyoteTimeCounter;
     private float jumpBufferCounter;
     private bool controlsEnabled = true;
+    private float velocityYTime;
 
     // Skill system
     private FilterSystem filterSystem;
@@ -42,6 +43,8 @@ public class PlayerController : MonoBehaviour
     private static readonly int IsRunning = Animator.StringToHash("IsRunning");
     private static readonly int IsGrounded = Animator.StringToHash("IsGrounded");
     private static readonly int VerticalVelocity = Animator.StringToHash("VerticalVelocity");
+    private static readonly int CanLand = Animator.StringToHash("CanLand");
+
 
     public enum SkillType
     {
@@ -181,6 +184,15 @@ public class PlayerController : MonoBehaviour
 
         // jump buffer 始终衰减
         jumpBufferCounter = Mathf.Max(0f, jumpBufferCounter - Time.deltaTime);
+
+        if (rb.velocity.y < 0.01f)
+        {
+            velocityYTime += Time.deltaTime;
+        }
+        else
+        {
+            velocityYTime = 0f;
+        }
     }
 
     private void UpdateAnimations()
@@ -191,9 +203,13 @@ public class PlayerController : MonoBehaviour
         float velocityY = rb.velocity.y;
 
         animator.SetFloat("VelocityX", velocityX);  
-        animator.SetFloat("VelocityY", velocityY);  
+        animator.SetFloat("VelocityY", velocityY);
+        animator.SetFloat("VelocityYTime", velocityYTime);
         animator.SetBool(IsGrounded, isGrounded);   
         animator.SetBool(IsRunning, Mathf.Abs(velocityX) > 0.1f && isGrounded);
+        bool canLand = (velocityY < -5f) || (velocityYTime > 0.3f);
+        animator.SetBool(CanLand, canLand);
+
     }
 
     private void SwitchSkill()
