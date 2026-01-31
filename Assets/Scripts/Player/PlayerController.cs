@@ -44,6 +44,7 @@ public class PlayerController : MonoBehaviour
     private static readonly int IsGrounded = Animator.StringToHash("IsGrounded");
     private static readonly int VerticalVelocity = Animator.StringToHash("VerticalVelocity");
     private static readonly int CanLand = Animator.StringToHash("CanLand");
+    private static readonly int JumpTrigger = Animator.StringToHash("Jump");
 
 
     public enum SkillType
@@ -145,7 +146,10 @@ public class PlayerController : MonoBehaviour
 
     private void Jump()
     {
+        if (animator != null)
+                animator.SetTrigger(JumpTrigger);
         rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+
     }
 
     private void UpdateGroundedState()
@@ -204,11 +208,8 @@ public class PlayerController : MonoBehaviour
 
         animator.SetFloat("VelocityX", velocityX);  
         animator.SetFloat("VelocityY", velocityY);
-        animator.SetFloat("VelocityYTime", velocityYTime);
         animator.SetBool(IsGrounded, isGrounded);   
         animator.SetBool(IsRunning, Mathf.Abs(velocityX) > 0.1f && isGrounded);
-        bool canLand = (velocityY < -5f) || (velocityYTime > 0.3f);
-        animator.SetBool(CanLand, canLand);
 
     }
 

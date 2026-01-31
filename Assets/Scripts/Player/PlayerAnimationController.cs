@@ -1,4 +1,7 @@
 using UnityEngine;
+///
+/// 该脚本实际上已不再使用，无需为Player挂载该脚本
+/// 
 
 public class PlayerAnimationController : MonoBehaviour
 {
