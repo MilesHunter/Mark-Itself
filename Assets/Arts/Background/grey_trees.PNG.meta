@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: a53a0db13c298bf42971dc0d67f9c04b
+guid: e8d8db7a44055364e8fe4f8061ae2086
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -94,7 +94,7 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 3
-    buildTarget: Android
+    buildTarget: WebGL
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -107,7 +107,7 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 3
-    buildTarget: WebGL
+    buildTarget: Android
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -123,64 +123,148 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: IMG_2826_0
+      name: grey_trees_0
       rect:
         serializedVersion: 2
-        x: 33
-        y: 1035
-        width: 52
-        height: 27
+        x: 151
+        y: 0
+        width: 523
+        height: 967
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: a4359017e23ac064081618f63038850a
-      internalID: 447149391
+      spriteID: 8b136695f95e69d4ba082c3b7fd5514d
+      internalID: 632461447
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: IMG_2826_4
+      name: grey_trees_1
       rect:
         serializedVersion: 2
-        x: 98
-        y: 1034
-        width: 207
-        height: 22
+        x: 835
+        y: 0
+        width: 571
+        height: 967
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: fef872353eb63d04fb0bfffcf17c9110
-      internalID: 1050613612
+      spriteID: 53e178e8e65312b4dadcf9c8137b6ecb
+      internalID: 384176599
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: IMG_2826_12
+      name: grey_trees_2
       rect:
         serializedVersion: 2
-        x: 1745
-        y: 1027
-        width: 135
-        height: 37
+        x: 1442
+        y: 0
+        width: 181
+        height: 967
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 05d8a0ad3db54a44da563b5cc1bc7299
-      internalID: 1731149150
+      spriteID: bb73a75a0c0f9a2489543813ab22112e
+      internalID: 1827244053
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: grey_trees_3
+      rect:
+        serializedVersion: 2
+        x: 1731
+        y: 0
+        width: 242
+        height: 967
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a71efe52d9648e8408740243e6febc6b
+      internalID: -1259744407
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: grey_trees_4
+      rect:
+        serializedVersion: 2
+        x: 2117
+        y: 0
+        width: 525
+        height: 967
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cbee9a78b319a874c868e817926124b9
+      internalID: 1209784626
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: grey_trees_5
+      rect:
+        serializedVersion: 2
+        x: 2788
+        y: 0
+        width: 502
+        height: 967
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f341650ac2f0afb4e8a25e4820e37bba
+      internalID: 1952893179
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: grey_trees_6
+      rect:
+        serializedVersion: 2
+        x: 3418
+        y: 0
+        width: 297
+        height: 967
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 05b17cc54fc888e4a9494480cf1e9252
+      internalID: 578186314
       vertices: []
       indices: 
       edges: []
@@ -196,20 +280,13 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      IMG_2826_0: 447149391
-      IMG_2826_1: 1167178808
-      IMG_2826_10: -724521214
-      IMG_2826_11: 97935893
-      IMG_2826_12: 1731149150
-      IMG_2826_13: -2067263523
-      IMG_2826_2: 1194828258
-      IMG_2826_3: 580530220
-      IMG_2826_4: 1050613612
-      IMG_2826_5: 1695147776
-      IMG_2826_6: -1443519817
-      IMG_2826_7: 842131465
-      IMG_2826_8: -1693177249
-      IMG_2826_9: 209021178
+      grey_trees_0: 632461447
+      grey_trees_1: 384176599
+      grey_trees_2: 1827244053
+      grey_trees_3: -1259744407
+      grey_trees_4: 1209784626
+      grey_trees_5: 1952893179
+      grey_trees_6: 578186314
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: a53a0db13c298bf42971dc0d67f9c04b
+guid: 505f168738d80e54fb8cc5b66832d7b1
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -94,7 +94,7 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 3
-    buildTarget: Android
+    buildTarget: WebGL
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -107,7 +107,7 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 3
-    buildTarget: WebGL
+    buildTarget: Android
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -123,64 +123,169 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: IMG_2826_0
+      name: dark_decoration_0
       rect:
         serializedVersion: 2
-        x: 33
-        y: 1035
-        width: 52
-        height: 27
+        x: 51
+        y: 134
+        width: 482
+        height: 714
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: a4359017e23ac064081618f63038850a
-      internalID: 447149391
+      spriteID: 114de64d19424fe498da66ae999cf476
+      internalID: 208074952
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: IMG_2826_4
+      name: dark_decoration_1
       rect:
         serializedVersion: 2
-        x: 98
-        y: 1034
-        width: 207
-        height: 22
+        x: 641
+        y: 148
+        width: 384
+        height: 724
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: fef872353eb63d04fb0bfffcf17c9110
-      internalID: 1050613612
+      spriteID: 0a32d304d1239cc449ced60dde2710d5
+      internalID: 1254846916
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: IMG_2826_12
+      name: dark_decoration_2
       rect:
         serializedVersion: 2
-        x: 1745
-        y: 1027
-        width: 135
-        height: 37
+        x: 1087
+        y: 483
+        width: 532
+        height: 426
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 05d8a0ad3db54a44da563b5cc1bc7299
-      internalID: 1731149150
+      spriteID: 699e16ee51a0b19429605665288b7daf
+      internalID: -512444293
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dark_decoration_3
+      rect:
+        serializedVersion: 2
+        x: 1676
+        y: 152
+        width: 526
+        height: 704
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c9b25ff9d1a2e8345ac391c30060c6ae
+      internalID: 602436152
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dark_decoration_5
+      rect:
+        serializedVersion: 2
+        x: 2217
+        y: 153
+        width: 463
+        height: 549
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 64c3da1238f4336489c5f3d822d4e9a0
+      internalID: 2140468319
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dark_decoration_6
+      rect:
+        serializedVersion: 2
+        x: 2767
+        y: 150
+        width: 484
+        height: 748
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 54ba95383b644674fb769ef26020ea6d
+      internalID: -1267428937
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dark_decoration_7
+      rect:
+        serializedVersion: 2
+        x: 524
+        y: 148
+        width: 43
+        height: 78
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 47272dc345666ea41a4f141fddf5580a
+      internalID: 532742976
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dark_decoration_8
+      rect:
+        serializedVersion: 2
+        x: 1079
+        y: 155
+        width: 519
+        height: 290
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6b04f2aba06ea8b42bbf3e080939cce5
+      internalID: 1259540110
       vertices: []
       indices: 
       edges: []
@@ -196,20 +301,15 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      IMG_2826_0: 447149391
-      IMG_2826_1: 1167178808
-      IMG_2826_10: -724521214
-      IMG_2826_11: 97935893
-      IMG_2826_12: 1731149150
-      IMG_2826_13: -2067263523
-      IMG_2826_2: 1194828258
-      IMG_2826_3: 580530220
-      IMG_2826_4: 1050613612
-      IMG_2826_5: 1695147776
-      IMG_2826_6: -1443519817
-      IMG_2826_7: 842131465
-      IMG_2826_8: -1693177249
-      IMG_2826_9: 209021178
+      dark_decoration_0: 208074952
+      dark_decoration_1: 1254846916
+      dark_decoration_2: -512444293
+      dark_decoration_3: 602436152
+      dark_decoration_4: 924125664
+      dark_decoration_5: 2140468319
+      dark_decoration_6: -1267428937
+      dark_decoration_7: 532742976
+      dark_decoration_8: 1259540110
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

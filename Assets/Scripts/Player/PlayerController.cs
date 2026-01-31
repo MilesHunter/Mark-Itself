@@ -21,7 +21,6 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D rb;
     private SpriteRenderer spriteRenderer;
     private Animator animator;
-    private PlayerAnimationController animationController;
 
     // Movement variables
     private float horizontalInput;
@@ -60,7 +59,6 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
-        animationController = GetComponent<PlayerAnimationController>();
 
         // Get skill components
         filterSystem = GetComponent<FilterSystem>();
@@ -71,24 +69,6 @@ public class PlayerController : MonoBehaviour
 
         // Set initial respawn point
         currentRespawnPoint = transform.position;
-    }
-
-    void Start()
-    {
-        // Register with GameManager if it exists
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.OnGameStateChanged += OnGameStateChanged;
-        }
-    }
-
-    void OnDestroy()
-    {
-        // Unregister from GameManager
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.OnGameStateChanged -= OnGameStateChanged;
-        }
     }
 
     void Update()
@@ -161,52 +141,53 @@ public class PlayerController : MonoBehaviour
 
     private void UpdateGroundedState()
     {
-        wasGrounded = isGrounded;
-        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayerMask);
+        // 先计算当前 grounded 状态
+        bool currentGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayerMask) != null;
 
-        // Reset coyote time when landing
-        if (isGrounded && !wasGrounded)
+        // 检测是否“刚落地”
+        if (currentGrounded && !isGrounded)
         {
-            coyoteTimeCounter = coyoteTime;
+            coyoteTimeCounter = coyoteTime;           // 刚落地 → 重置 coyote 为满值
+            Debug.Log("Coyote Reset on Land!");
+        }
+
+        // 更新 wasGrounded 为上一帧的 isGrounded
+        wasGrounded = isGrounded;
+
+        // 最后才更新 isGrounded（给下一帧用）
+        isGrounded = currentGrounded;
+
+        // Debug：状态变化时打印
+        if (isGrounded != wasGrounded)
+        {
+            Debug.Log($"Grounded Changed: {wasGrounded} → {isGrounded}");
         }
     }
 
     private void UpdateTimers()
     {
-        // Update coyote time
-        if (!isGrounded && wasGrounded)
-        {
-            coyoteTimeCounter = coyoteTime;
-        }
-        else if (!isGrounded)
+        // coyote time 只在空中衰减
+        if (!isGrounded)
         {
             coyoteTimeCounter -= Time.deltaTime;
         }
+        coyoteTimeCounter = Mathf.Max(0f, coyoteTimeCounter);
 
-        // Update jump buffer
-        if (jumpBufferCounter > 0f)
-        {
-            jumpBufferCounter -= Time.deltaTime;
-        }
+        // jump buffer 始终衰减
+        jumpBufferCounter = Mathf.Max(0f, jumpBufferCounter - Time.deltaTime);
     }
 
     private void UpdateAnimations()
     {
-        bool isRunning = Mathf.Abs(horizontalInput) > 0.1f && isGrounded;
+        if (animator == null) return;
 
-        // Method 1: Using Animator Controller (recommended)
-        if (animator != null)
-        {
-            animator.SetBool(IsRunning, isRunning);
-            animator.SetBool(IsGrounded, isGrounded);
-            animator.SetFloat(VerticalVelocity, rb.velocity.y);
-        }
+        float velocityX = rb.velocity.x;
+        float velocityY = rb.velocity.y;
 
-        // Method 2: Using direct Animation component
-        if (animationController != null)
-        {
-            animationController.UpdateAnimationState(isRunning, isGrounded, rb.velocity.y);
-        }
+        animator.SetFloat("VelocityX", velocityX);  
+        animator.SetFloat("VelocityY", velocityY);  
+        animator.SetBool(IsGrounded, isGrounded);   
+        animator.SetBool(IsRunning, Mathf.Abs(velocityX) > 0.1f && isGrounded);
     }
 
     private void SwitchSkill()
@@ -359,44 +340,6 @@ public class PlayerController : MonoBehaviour
     public bool GetControlsEnabled()
     {
         return controlsEnabled;
-    }
-
-    // GameManager integration methods
-    private void OnGameStateChanged(GameState newState)
-    {
-        switch (newState)
-        {
-            case GameState.Playing:
-                SetControlsEnabled(true);
-                break;
-            case GameState.Paused:
-            case GameState.GameOver:
-            case GameState.Loading:
-                SetControlsEnabled(false);
-                DeactivateSkill(); // Deactivate any active skills
-                break;
-        }
-    }
-
-    public void ResetPlayer()
-    {
-        // Reset velocity and position
-        rb.velocity = Vector2.zero;
-        transform.position = currentRespawnPoint;
-
-        // Reset skill states
-        DeactivateSkill();
-        skillActive = false;
-
-        // Reset movement states
-        horizontalInput = 0f;
-        coyoteTimeCounter = 0f;
-        jumpBufferCounter = 0f;
-
-        // Enable controls
-        SetControlsEnabled(true);
-
-        Debug.Log("Player reset completed");
     }
 
     // Debug visualization
