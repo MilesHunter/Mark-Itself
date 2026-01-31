@@ -25,7 +25,7 @@ public class GameManager : MonoBehaviour
 
     // Game components
     private PlayerController player;
-    private FilterSystem filterSystem;
+    private GameObject filterSystem;
     private GameObject maskSystem;
 
     // Game data
@@ -93,12 +93,6 @@ public class GameManager : MonoBehaviour
         {
             SpawnPlayer();
         }
-
-        if (player != null)
-        {
-            // Get player systems
-            filterSystem = player.GetComponent<FilterSystem>();
-        }
     }
 
     private void SpawnPlayer()
@@ -107,11 +101,6 @@ public class GameManager : MonoBehaviour
         GameObject playerObj = Instantiate(playerPrefab, spawnPosition, Quaternion.identity);
         player = playerObj.GetComponent<PlayerController>();
 
-        if (player != null)
-        {
-            filterSystem = player.GetComponent<FilterSystem>();
-            OnPlayerRespawn?.Invoke();
-        }
     }
     #endregion
 
@@ -294,8 +283,8 @@ public class GameManager : MonoBehaviour
     {
         if (filterSystem != null)
         {
-            filterSystem.SetFilterColor(color);
-            filterSystem.ActivateFilter();
+            filterSystem.GetComponent<FilterSystem>().SetFilterColorAndTag(color);
+            filterSystem.SetActive(true);
             Debug.Log($"Activated {color} filter");
         }
     }
@@ -304,7 +293,7 @@ public class GameManager : MonoBehaviour
     {
         if (filterSystem != null)
         {
-            filterSystem.DeactivateFilter();
+            filterSystem.SetActive(false);
             Debug.Log("Deactivated color filter");
         }
     }
