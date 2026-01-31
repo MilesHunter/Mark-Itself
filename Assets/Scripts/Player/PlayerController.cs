@@ -33,7 +33,7 @@ public class PlayerController : MonoBehaviour
 
     // Skill system
     private FilterSystem filterSystem;
-    private MaskSystem maskSystem;
+    private GameObject maskSystem;
     private bool skillActive = false;
 
     // Respawn system
@@ -64,13 +64,10 @@ public class PlayerController : MonoBehaviour
 
         // Get skill components
         filterSystem = GetComponent<FilterSystem>();
-        maskSystem = GetComponent<MaskSystem>();
 
         // Initialize skill systems with current color
         if (filterSystem != null)
             filterSystem.SetFilterColor(currentColor);
-        if (maskSystem != null)
-            maskSystem.SetMaskColor(currentColor);
 
         // Set initial respawn point
         currentRespawnPoint = transform.position;
@@ -241,10 +238,12 @@ public class PlayerController : MonoBehaviour
 
             case SkillType.MaskSystem:
                 if (maskSystem != null)
-                    maskSystem.ActivateMask();
+                    maskSystem.SetActive(true);
                 break;
         }
     }
+
+
 
     private void DeactivateSkill()
     {
@@ -261,7 +260,7 @@ public class PlayerController : MonoBehaviour
 
             case SkillType.MaskSystem:
                 if (maskSystem != null)
-                    maskSystem.DeactivateMask();
+                    maskSystem.SetActive(false);
                 break;
         }
     }
@@ -318,7 +317,7 @@ public class PlayerController : MonoBehaviour
 
             case SkillType.MaskSystem:
                 if (maskSystem != null)
-                    maskSystem.SetMaskColor(currentColor);
+                    maskSystem.GetComponent<MaskSystem>().SetMaskColor(currentColor);
                 break;
         }
 

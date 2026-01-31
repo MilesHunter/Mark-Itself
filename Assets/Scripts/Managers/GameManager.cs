@@ -26,7 +26,7 @@ public class GameManager : MonoBehaviour
     // Game components
     private PlayerController player;
     private FilterSystem filterSystem;
-    private MaskSystem maskSystem;
+    private GameObject maskSystem;
 
     // Game data
     private int score = 0;
@@ -98,7 +98,6 @@ public class GameManager : MonoBehaviour
         {
             // Get player systems
             filterSystem = player.GetComponent<FilterSystem>();
-            maskSystem = player.GetComponent<MaskSystem>();
         }
     }
 
@@ -111,7 +110,6 @@ public class GameManager : MonoBehaviour
         if (player != null)
         {
             filterSystem = player.GetComponent<FilterSystem>();
-            maskSystem = player.GetComponent<MaskSystem>();
             OnPlayerRespawn?.Invoke();
         }
     }
@@ -167,13 +165,13 @@ public class GameManager : MonoBehaviour
         }
 
         // Debug keys (remove in production)
-        if (Debug.isDebugBuild)
-        {
-            if (Input.GetKeyDown(KeyCode.R))
-                RestartGame();
-            if (Input.GetKeyDown(KeyCode.K))
-                PlayerDeath();
-        }
+        //if (Debug.isDebugBuild)
+        //{
+        //    if (Input.GetKeyDown(KeyCode.R))
+        //        RestartGame();
+        //    if (Input.GetKeyDown(KeyCode.K))
+        //        PlayerDeath();
+        //}
     }
 
     public void TogglePause()
@@ -315,15 +313,15 @@ public class GameManager : MonoBehaviour
     {
         if (maskSystem != null)
         {
-            maskSystem.SetMaskColor(color);
-            if (maskSystem.IsMaskActive())
+            maskSystem.GetComponent<MaskSystem>().SetMaskColor(color);
+            if (maskSystem.activeSelf)
             {
-                maskSystem.DeactivateMask();
+                maskSystem.SetActive(false);
                 Debug.Log($"Deactivated {color} mask");
             }
             else
             {
-                maskSystem.ActivateMask();
+                maskSystem.SetActive(true);
                 Debug.Log($"Activated {color} mask");
             }
         }

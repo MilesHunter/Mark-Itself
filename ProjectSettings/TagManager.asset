@@ -4,12 +4,10 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - GreenObject
-  - RedObject
-  - BlueObject
-  - YellowObject
-  - PurpleObject
-  - HiddenObject
+  - Red
+  - Green
+  - Blue
+  - Yellow
   layers:
   - Default
   - TransparentFX
