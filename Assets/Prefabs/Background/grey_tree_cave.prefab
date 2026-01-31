@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3102791687667579320}
   - component: {fileID: 5412434787467822012}
   - component: {fileID: 2091567049776185095}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: grey_tree_cave
   m_TagString: Untagged
   m_Icon: {fileID: 0}
