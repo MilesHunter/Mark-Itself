@@ -21,6 +21,7 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D rb;
     private SpriteRenderer spriteRenderer;
     private Animator animator;
+    private PlayerAnimationController animationController;
 
     // Movement variables
     private float horizontalInput;
@@ -59,6 +60,7 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
+        animationController = GetComponent<PlayerAnimationController>();
 
         // Get skill components
         filterSystem = GetComponent<FilterSystem>();
@@ -72,6 +74,24 @@ public class PlayerController : MonoBehaviour
 
         // Set initial respawn point
         currentRespawnPoint = transform.position;
+    }
+
+    void Start()
+    {
+        // Register with GameManager if it exists
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnGameStateChanged += OnGameStateChanged;
+        }
+    }
+
+    void OnDestroy()
+    {
+        // Unregister from GameManager
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnGameStateChanged -= OnGameStateChanged;
+        }
     }
 
     void Update()
@@ -175,11 +195,20 @@ public class PlayerController : MonoBehaviour
 
     private void UpdateAnimations()
     {
+        bool isRunning = Mathf.Abs(horizontalInput) > 0.1f && isGrounded;
+
+        // Method 1: Using Animator Controller (recommended)
         if (animator != null)
         {
-            animator.SetBool(IsRunning, Mathf.Abs(horizontalInput) > 0.1f && isGrounded);
+            animator.SetBool(IsRunning, isRunning);
             animator.SetBool(IsGrounded, isGrounded);
             animator.SetFloat(VerticalVelocity, rb.velocity.y);
+        }
+
+        // Method 2: Using direct Animation component
+        if (animationController != null)
+        {
+            animationController.UpdateAnimationState(isRunning, isGrounded, rb.velocity.y);
         }
     }
 
@@ -331,6 +360,44 @@ public class PlayerController : MonoBehaviour
     public bool GetControlsEnabled()
     {
         return controlsEnabled;
+    }
+
+    // GameManager integration methods
+    private void OnGameStateChanged(GameState newState)
+    {
+        switch (newState)
+        {
+            case GameState.Playing:
+                SetControlsEnabled(true);
+                break;
+            case GameState.Paused:
+            case GameState.GameOver:
+            case GameState.Loading:
+                SetControlsEnabled(false);
+                DeactivateSkill(); // Deactivate any active skills
+                break;
+        }
+    }
+
+    public void ResetPlayer()
+    {
+        // Reset velocity and position
+        rb.velocity = Vector2.zero;
+        transform.position = currentRespawnPoint;
+
+        // Reset skill states
+        DeactivateSkill();
+        skillActive = false;
+
+        // Reset movement states
+        horizontalInput = 0f;
+        coyoteTimeCounter = 0f;
+        jumpBufferCounter = 0f;
+
+        // Enable controls
+        SetControlsEnabled(true);
+
+        Debug.Log("Player reset completed");
     }
 
     // Debug visualization
