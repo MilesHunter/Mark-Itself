@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: a53a0db13c298bf42971dc0d67f9c04b
+guid: 206826b7dfda31c4dbfc1d6ba25b95df
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -43,7 +43,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -94,7 +94,7 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 3
-    buildTarget: Android
+    buildTarget: WebGL
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -107,7 +107,7 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 3
-    buildTarget: WebGL
+    buildTarget: Android
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -121,70 +121,7 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
-    sprites:
-    - serializedVersion: 2
-      name: IMG_2826_0
-      rect:
-        serializedVersion: 2
-        x: 33
-        y: 1035
-        width: 52
-        height: 27
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: a4359017e23ac064081618f63038850a
-      internalID: 447149391
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: IMG_2826_4
-      rect:
-        serializedVersion: 2
-        x: 98
-        y: 1034
-        width: 207
-        height: 22
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: fef872353eb63d04fb0bfffcf17c9110
-      internalID: 1050613612
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: IMG_2826_12
-      rect:
-        serializedVersion: 2
-        x: 1745
-        y: 1027
-        width: 135
-        height: 37
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 05d8a0ad3db54a44da563b5cc1bc7299
-      internalID: 1731149150
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
+    sprites: []
     outline: []
     physicsShape: []
     bones: []
@@ -195,21 +132,7 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
-    nameFileIdTable:
-      IMG_2826_0: 447149391
-      IMG_2826_1: 1167178808
-      IMG_2826_10: -724521214
-      IMG_2826_11: 97935893
-      IMG_2826_12: 1731149150
-      IMG_2826_13: -2067263523
-      IMG_2826_2: 1194828258
-      IMG_2826_3: 580530220
-      IMG_2826_4: 1050613612
-      IMG_2826_5: 1695147776
-      IMG_2826_6: -1443519817
-      IMG_2826_7: 842131465
-      IMG_2826_8: -1693177249
-      IMG_2826_9: 209021178
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
