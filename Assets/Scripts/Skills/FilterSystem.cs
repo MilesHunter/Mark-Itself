@@ -90,7 +90,7 @@ public class FilterSystem : MonoBehaviour
         ApplyFilterToScene();
 
         // 调整滤镜覆盖层大小以覆盖整个屏幕
-        AdjustFilterOverlaySize();
+        //AdjustFilterOverlaySize();
 
         OnFilterStateChanged?.Invoke(true);
         Debug.Log($"Filter activated with color: {currentFilterColor}");
