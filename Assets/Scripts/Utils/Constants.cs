@@ -7,7 +7,9 @@ public enum FilterColor
     Blue,
     Green,
     Yellow,
-    Purple
+    Purple,
+    Magenta,
+    Cyan
 }
 
 // 技能类型枚举
