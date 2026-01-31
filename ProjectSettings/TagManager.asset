@@ -3,7 +3,13 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - GreenObject
+  - RedObject
+  - BlueObject
+  - YellowObject
+  - PurpleObject
+  - HiddenObject
   layers:
   - Default
   - TransparentFX
@@ -11,9 +17,9 @@ TagManager:
   - 
   - Water
   - UI
-  - Ground
-  - 
-  - 
+  - HiddenObjects
+  - Interaction
+  - Background
   - 
   - 
   - 

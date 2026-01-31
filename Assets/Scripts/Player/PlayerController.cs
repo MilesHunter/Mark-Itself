@@ -164,49 +164,51 @@ public class PlayerController : MonoBehaviour
 
     private void UpdateGroundedState()
     {
-        // 先计算当前 grounded 状态
-        bool currentGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayerMask) != null;
-
-        // 检测是否“刚落地”
-        if (currentGrounded && !isGrounded)
-        {
-            coyoteTimeCounter = coyoteTime;           // 刚落地 → 重置 coyote 为满值
-            Debug.Log("Coyote Reset on Land!");
-        }
-
-        // 更新 wasGrounded 为上一帧的 isGrounded
         wasGrounded = isGrounded;
+        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayerMask);
 
-        // 最后才更新 isGrounded（给下一帧用）
-        isGrounded = currentGrounded;
-
-        // Debug：状态变化时打印
-        if (isGrounded != wasGrounded)
+        // Reset coyote time when landing
+        if (isGrounded && !wasGrounded)
         {
-            Debug.Log($"Grounded Changed: {wasGrounded} → {isGrounded}");
+            coyoteTimeCounter = coyoteTime;
         }
     }
 
     private void UpdateTimers()
     {
-        // coyote time 只在空中衰减
-        if (!isGrounded)
+        // Update coyote time
+        if (!isGrounded && wasGrounded)
+        {
+            coyoteTimeCounter = coyoteTime;
+        }
+        else if (!isGrounded)
         {
             coyoteTimeCounter -= Time.deltaTime;
         }
-        coyoteTimeCounter = Mathf.Max(0f, coyoteTimeCounter);
 
-        // jump buffer 始终衰减
-        jumpBufferCounter = Mathf.Max(0f, jumpBufferCounter - Time.deltaTime);
+        // Update jump buffer
+        if (jumpBufferCounter > 0f)
+        {
+            jumpBufferCounter -= Time.deltaTime;
+        }
     }
 
     private void UpdateAnimations()
     {
+        bool isRunning = Mathf.Abs(horizontalInput) > 0.1f && isGrounded;
+
+        // Method 1: Using Animator Controller (recommended)
         if (animator != null)
         {
-            animator.SetBool(IsRunning, Mathf.Abs(horizontalInput) > 0.1f && isGrounded);
+            animator.SetBool(IsRunning, isRunning);
             animator.SetBool(IsGrounded, isGrounded);
             animator.SetFloat(VerticalVelocity, rb.velocity.y);
+        }
+
+        // Method 2: Using direct Animation component
+        if (animationController != null)
+        {
+            animationController.UpdateAnimationState(isRunning, isGrounded, rb.velocity.y);
         }
     }
 
