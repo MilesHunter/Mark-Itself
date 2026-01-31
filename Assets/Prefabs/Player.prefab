@@ -14,11 +14,11 @@ GameObject:
   - component: {fileID: 1704333631903673143}
   - component: {fileID: 1567277518462267573}
   - component: {fileID: 834766621172972727}
-  - component: {fileID: 2113519909057656267}
   - component: {fileID: 6436155189092548726}
+  - component: {fileID: 5582912228245096246}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -32,7 +32,7 @@ Transform:
   m_GameObject: {fileID: 765508249216517276}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -10}
   m_LocalScale: {x: 0.3, y: 0.3, z: 0.3}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -87,7 +87,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 5
-  jumpForce: 12
+  jumpForce: 4
   coyoteTime: 0.2
   jumpBufferTime: 0.2
   groundCheck: {fileID: 2633155328062870125}
@@ -171,8 +171,35 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!68 &2113519909057656267
-EdgeCollider2D:
+--- !u!50 &6436155189092548726
+Rigidbody2D:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 765508249216517276}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDrag: 0
+  m_AngularDrag: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 4
+--- !u!70 &5582912228245096246
+CapsuleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -203,75 +230,6 @@ EdgeCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  m_EdgeRadius: 0
-  m_Points:
-  - {x: 0.94318235, y: -2.3129642}
-  - {x: 0.51452416, y: -2.3129644}
-  - {x: -1.0929439, y: -2.3129644}
-  - {x: -1.9839175, y: -2.212576}
-  - {x: -2.1611915, y: -2.0028157}
-  - {x: -1.8380624, y: -1.8331383}
-  - {x: -2.189136, y: -1.5936791}
-  - {x: -1.5178323, y: -1.1959897}
-  - {x: -0.9776978, y: -0.8229587}
-  - {x: -0.44147635, y: -0.41283125}
-  - {x: -0.7548834, y: -0.27560514}
-  - {x: -1.0186334, y: -0.037147928}
-  - {x: -1.0247402, y: 0.0616626}
-  - {x: -0.67165947, y: 0.12352671}
-  - {x: -1.0913775, y: 0.4916787}
-  - {x: -1.2343168, y: 1.1797467}
-  - {x: -1.1918341, y: 1.6320227}
-  - {x: -0.9085107, y: 1.506778}
-  - {x: -0.05062644, y: 1.3094262}
-  - {x: 0.004100591, y: 1.6762683}
-  - {x: 0.19704306, y: 1.9499421}
-  - {x: 0.7798557, y: 1.3629061}
-  - {x: 1.1557486, y: 1.6661185}
-  - {x: 1.3816521, y: 1.4107912}
-  - {x: 1.3700562, y: 0.9695364}
-  - {x: 1.1898532, y: 0.7864379}
-  - {x: 1.2858177, y: 0.6491896}
-  - {x: 1.2670532, y: 0.40462548}
-  - {x: 1.1827058, y: 0.31361562}
-  - {x: 1.2000729, y: -0.06532064}
-  - {x: 0.8907225, y: -0.4078156}
-  - {x: 0.7923069, y: -0.7143455}
-  - {x: 0.89324707, y: -1.162404}
-  - {x: 0.8813052, y: -1.4493061}
-  - {x: 0.62097335, y: -1.8226062}
-  - {x: 0.75318825, y: -2.092019}
-  - {x: 0.8662447, y: -2.1908903}
-  - {x: 0.945102, y: -2.3129644}
-  m_AdjacentStartPoint: {x: 0, y: 0}
-  m_AdjacentEndPoint: {x: 0, y: 0}
-  m_UseAdjacentStartPoint: 0
-  m_UseAdjacentEndPoint: 0
---- !u!50 &6436155189092548726
-Rigidbody2D:
-  serializedVersion: 4
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 765508249216517276}
-  m_BodyType: 0
-  m_Simulated: 1
-  m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 0
-  m_Mass: 1
-  m_LinearDrag: 0
-  m_AngularDrag: 0.05
-  m_GravityScale: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
-  m_Constraints: 4
+  m_Offset: {x: 0.14405032, y: 0.013504823}
+  m_Size: {x: 2.1331277, y: 4.5954514}
+  m_Direction: 0
