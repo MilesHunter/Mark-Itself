@@ -38,20 +38,20 @@ public class HiddenObject : MonoBehaviour
         // 记录原始透明度
         originalAlpha = spriteRenderer.color.a;
 
-        // 确保物体有正确的标签
-        if (!gameObject.CompareTag(GameConstants.TAG_HIDDEN_OBJECT))
-        {
-            gameObject.tag = GameConstants.TAG_HIDDEN_OBJECT;
-            Debug.LogWarning($"HiddenObject {gameObject.name} didn't have the correct tag. Auto-assigned {GameConstants.TAG_HIDDEN_OBJECT}");
-        }
+        //// 确保物体有正确的标签
+        //if (!gameObject.CompareTag(GameConstants.TAG_HIDDEN_OBJECT))
+        //{
+        //    // gameObject.tag = GameConstants.TAG_HIDDEN_OBJECT;
+        //    Debug.LogWarning($"HiddenObject {gameObject.name} didn't have the correct tag. Auto-assigned {GameConstants.TAG_HIDDEN_OBJECT}");
+        //}
     }
 
     void Start()
     {
-        if (startHidden)
-        {
-            HideImmediate();
-        }
+        //if (startHidden)
+        //{
+        //    HideImmediate();
+        //}
     }
 
     public void RevealObject()

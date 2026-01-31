@@ -21,12 +21,12 @@ public enum SkillType
 public static class GameConstants
 {
     // 标签定义
-    public const string TAG_RED_OBJECT = "RedObject";
-    public const string TAG_BLUE_OBJECT = "BlueObject";
-    public const string TAG_GREEN_OBJECT = "GreenObject";
-    public const string TAG_YELLOW_OBJECT = "YellowObject";
-    public const string TAG_PURPLE_OBJECT = "PurpleObject";
-    public const string TAG_BLACK_OBJECT = "BlackObject";
+    public const string TAG_RED_OBJECT = "Red";
+    public const string TAG_BLUE_OBJECT = "Blue";
+    public const string TAG_GREEN_OBJECT = "Green";
+    public const string TAG_YELLOW_OBJECT = "Yellow";
+    public const string TAG_PURPLE_OBJECT = "Purple";
+    public const string TAG_BLACK_OBJECT = "Black";
     public const string TAG_HIDDEN_OBJECT = "HiddenObject";
     public const string TAG_DEATH_ZONE = "DeathZone";
     public const string TAG_TRAP = "Trap";

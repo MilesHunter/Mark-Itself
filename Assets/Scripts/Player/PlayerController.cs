@@ -16,6 +16,7 @@ public class PlayerController : MonoBehaviour
     [Header("Skills")]
     [SerializeField] private SkillType currentSkill = SkillType.FilterSystem;
     [SerializeField] private FilterColor currentColor = FilterColor.Red;
+    [SerializeField] private GameObject maskSystem;
 
     // Components
     private Rigidbody2D rb;
@@ -32,7 +33,6 @@ public class PlayerController : MonoBehaviour
 
     // Skill system
     private FilterSystem filterSystem;
-    private MaskSystem maskSystem;
     private bool skillActive = false;
 
     // Respawn system
@@ -62,13 +62,10 @@ public class PlayerController : MonoBehaviour
 
         // Get skill components
         filterSystem = GetComponent<FilterSystem>();
-        maskSystem = GetComponent<MaskSystem>();
 
         // Initialize skill systems with current color
         if (filterSystem != null)
             filterSystem.SetFilterColor(currentColor);
-        if (maskSystem != null)
-            maskSystem.SetMaskColor(currentColor);
 
         // Set initial respawn point
         currentRespawnPoint = transform.position;
@@ -97,6 +94,7 @@ public class PlayerController : MonoBehaviour
         // Jump input
         if (Input.GetKeyDown(KeyCode.Space))
         {
+            Debug.Log("你跳啊");
             jumpBufferCounter = jumpBufferTime;
         }
 
@@ -109,11 +107,16 @@ public class PlayerController : MonoBehaviour
         // Skill activation
         if (Input.GetMouseButtonDown(1)) // Right mouse button
         {
-            ActivateSkill();
-        }
-        else if (Input.GetMouseButtonUp(1))
-        {
-            DeactivateSkill();
+            if (skillActive)
+            {
+                DeactivateSkill();
+                skillActive = false;
+            }
+            else
+            {
+                ActivateSkill();
+                skillActive = true;
+            }
         }
     }
 
@@ -222,10 +225,12 @@ public class PlayerController : MonoBehaviour
 
             case SkillType.MaskSystem:
                 if (maskSystem != null)
-                    maskSystem.ActivateMask();
+                    maskSystem.SetActive(true);
                 break;
         }
     }
+
+
 
     private void DeactivateSkill()
     {
@@ -242,7 +247,7 @@ public class PlayerController : MonoBehaviour
 
             case SkillType.MaskSystem:
                 if (maskSystem != null)
-                    maskSystem.DeactivateMask();
+                    maskSystem.SetActive(false);
                 break;
         }
     }
@@ -299,7 +304,7 @@ public class PlayerController : MonoBehaviour
 
             case SkillType.MaskSystem:
                 if (maskSystem != null)
-                    maskSystem.SetMaskColor(currentColor);
+                    maskSystem.GetComponent<MaskSystem>().SetMaskColor(currentColor);
                 break;
         }
 
