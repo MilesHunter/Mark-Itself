@@ -100,17 +100,15 @@ public class ColorButton : MonoBehaviour
         switch (filterColor)
         {
             case FilterColor.Red:
-                return Color.red;
+                return GameConstants.RED_COLOR;
             case FilterColor.Green:
-                return Color.green;
+                return GameConstants.GREEN_COLOR;
             case FilterColor.Blue:
-                return Color.blue;
+                return GameConstants.BLUE_COLOR;
             case FilterColor.Yellow:
-                return Color.yellow;
-            case FilterColor.Magenta:
-                return Color.magenta;
-            case FilterColor.Cyan:
-                return Color.cyan;
+                return GameConstants.YELLOW_COLOR;
+            case FilterColor.Purple:
+                return GameConstants.PURPLE_COLOR;
             default:
                 return Color.white;
         }

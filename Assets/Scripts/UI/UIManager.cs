@@ -239,10 +239,8 @@ public class UIManager : MonoBehaviour
             return FilterColor.Blue;
         else if (ColorApproximatelyEqual(color, Color.yellow))
             return FilterColor.Yellow;
-        else if (ColorApproximatelyEqual(color, Color.magenta))
-            return FilterColor.Magenta;
-        else if (ColorApproximatelyEqual(color, Color.cyan))
-            return FilterColor.Cyan;
+        else if (ColorApproximatelyEqual(color, GameConstants.PURPLE_COLOR))
+            return FilterColor.Purple;
         else
             return FilterColor.Red; // 默认返回红色
     }
