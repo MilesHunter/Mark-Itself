@@ -17,6 +17,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private SkillType currentSkill = SkillType.FilterSystem;
     [SerializeField] private FilterColor currentColor = FilterColor.Red;
     [SerializeField] private GameObject maskSystem;
+    [SerializeField] private GameObject filterSystem;
 
     // Components
     private Rigidbody2D rb;
@@ -32,7 +33,6 @@ public class PlayerController : MonoBehaviour
     private bool controlsEnabled = true;
 
     // Skill system
-    private FilterSystem filterSystem;
     private bool skillActive = false;
 
     // Respawn system
@@ -61,11 +61,10 @@ public class PlayerController : MonoBehaviour
         animator = GetComponent<Animator>();
 
         // Get skill components
-        filterSystem = GetComponent<FilterSystem>();
 
         // Initialize skill systems with current color
         if (filterSystem != null)
-            filterSystem.SetFilterColor(currentColor);
+            filterSystem.GetComponent<FilterSystem>().SetFilterColorAndTag(currentColor);
 
         // Set initial respawn point
         currentRespawnPoint = transform.position;
@@ -107,6 +106,7 @@ public class PlayerController : MonoBehaviour
         // Skill activation
         if (Input.GetMouseButtonDown(1)) // Right mouse button
         {
+            Debug.Log($"skill!{skillActive}");
             if (skillActive)
             {
                 DeactivateSkill();
@@ -220,7 +220,7 @@ public class PlayerController : MonoBehaviour
         {
             case SkillType.FilterSystem:
                 if (filterSystem != null)
-                    filterSystem.ActivateFilter();
+                    filterSystem.SetActive(true);
                 break;
 
             case SkillType.MaskSystem:
@@ -242,7 +242,7 @@ public class PlayerController : MonoBehaviour
         {
             case SkillType.FilterSystem:
                 if (filterSystem != null)
-                    filterSystem.DeactivateFilter();
+                    filterSystem.SetActive(false);
                 break;
 
             case SkillType.MaskSystem:
@@ -299,7 +299,7 @@ public class PlayerController : MonoBehaviour
         {
             case SkillType.FilterSystem:
                 if (filterSystem != null)
-                    filterSystem.SetFilterColor(currentColor);
+                    filterSystem.GetComponent<FilterSystem>().SetFilterColorAndTag(currentColor);
                 break;
 
             case SkillType.MaskSystem:

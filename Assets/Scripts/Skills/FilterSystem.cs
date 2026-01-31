@@ -1,234 +1,183 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+// 确保你已经有了 FilterColor 枚举和 GameConstants 类
+// public enum FilterColor { Red, Blue, Green, Yellow, Purple }
+// public static class GameConstants { ... } // 你的 GameConstants 类
+
 public class FilterSystem : MonoBehaviour
 {
-    [Header("Filter Settings")]
-    [SerializeField] private FilterColor currentFilterColor = FilterColor.Red;
-    [SerializeField] private GameObject filterOverlay; // 滤镜覆盖层
-    [SerializeField] private float filterAlpha = 0.7f;
-
-    [Header("Layer Settings")]
-    [SerializeField] private string interactionLayerName = "Interaction";
-    [SerializeField] private string filterLayerName = "Filter";
-    [SerializeField] private string backgroundLayerName = "Background";
-
-    // 当前被滤镜影响的物体列表
+    // 用于缓存找到的符合条件的GameObject，避免重复查找和内存抖动
     private List<GameObject> affectedObjects = new List<GameObject>();
-    private bool isFilterActive = false;
+    private float filterAlpha = 0.4f;
 
-    // 滤镜覆盖层组件
-    private SpriteRenderer filterRenderer;
+    // Interaction Layer 的索引。
+    [SerializeField] private int interactionLayerIndex = 8; // **请根据你的Unity设置修改此值！**
 
-    // 事件
-    public System.Action<FilterColor> OnFilterColorChanged;
-    public System.Action<bool> OnFilterStateChanged;
+    // 用于显示当前Filter颜色的SpriteRenderer
+    private SpriteRenderer spriteRenderer;
+
+    // 当前Filter的颜色，由外部设置
+    [SerializeField] private FilterColor currentFilterColor = FilterColor.Red;
+
+    // Filter的Tag，由currentFilterColor决定
+    // 每次OnEnable/OnDisable前会重新计算，确保是最新的
+    private string currentFilterTag;
 
     void Awake()
     {
-        // 获取或创建滤镜覆盖层
-        if (filterOverlay == null)
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        if (spriteRenderer == null)
         {
-            CreateFilterOverlay();
-        }
-        else
-        {
-            filterRenderer = filterOverlay.GetComponent<SpriteRenderer>();
+            Debug.LogError("FilterSystem requires a SpriteRenderer component on the same GameObject to change color.", this);
         }
 
-        // 初始化滤镜颜色
-        UpdateFilterColor();
-    }
-
-    void Start()
-    {
-        // 确保滤镜初始状态为关闭
-        DeactivateFilter();
-    }
-
-    private void CreateFilterOverlay()
-    {
-        // 创建滤镜覆盖层GameObject
-        filterOverlay = new GameObject("FilterOverlay");
-        filterOverlay.transform.SetParent(transform);
-
-        // 添加SpriteRenderer组件
-        filterRenderer = filterOverlay.AddComponent<SpriteRenderer>();
-
-        // 设置为全屏大小的白色方块
-        filterRenderer.sprite = CreateFullScreenSprite();
-        filterRenderer.sortingLayerName = filterLayerName;
-        filterRenderer.sortingOrder = 0;
-
-        // 设置混合模式材质
-        Material filterMaterial = new Material(Shader.Find("Sprites/Default"));
-        filterRenderer.material = filterMaterial;
-
-        // 初始状态为不可见
-        filterOverlay.SetActive(false);
-    }
-
-    private Sprite CreateFullScreenSprite()
-    {
-        // 创建一个简单的白色纹理
-        Texture2D texture = new Texture2D(1, 1);
-        texture.SetPixel(0, 0, Color.white);
-        texture.Apply();
-
-        // 创建Sprite
-        return Sprite.Create(texture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1);
-    }
-
-    public void ActivateFilter()
-    {
-        if (isFilterActive) return;
-
-        isFilterActive = true;
-        filterOverlay.SetActive(true);
-
-        // 应用滤镜效果到场景物体
-        ApplyFilterToScene();
-
-        // 调整滤镜覆盖层大小以覆盖整个屏幕
-        //AdjustFilterOverlaySize();
-
-        OnFilterStateChanged?.Invoke(true);
-        Debug.Log($"Filter activated with color: {currentFilterColor}");
-    }
-
-    public void DeactivateFilter()
-    {
-        if (!isFilterActive) return;
-
-        isFilterActive = false;
-        filterOverlay.SetActive(false);
-
-        // 恢复所有被影响的物体
-        RestoreAffectedObjects();
-
-        OnFilterStateChanged?.Invoke(false);
-        Debug.Log("Filter deactivated");
-    }
-
-    public void SetFilterColor(FilterColor newColor)
-    {
-        if (currentFilterColor == newColor) return;
-
-        currentFilterColor = newColor;
-        UpdateFilterColor();
-
-        // 如果滤镜当前激活，重新应用效果
-        if (isFilterActive)
+        // 确保Filter对象本身不在Interaction层
+        if (gameObject.layer == interactionLayerIndex)
         {
-            RestoreAffectedObjects();
-            ApplyFilterToScene();
+            Debug.LogWarning($"FilterSystem GameObject '{gameObject.name}' is on the 'Interaction' layer. " +
+                             "This might lead to unexpected behavior (e.g., filter disabling itself). " +
+                             "Consider moving the FilterSystem to a different layer.", this);
         }
 
-        OnFilterColorChanged?.Invoke(currentFilterColor);
-        Debug.Log($"Filter color changed to: {currentFilterColor}");
+        // 在Awake时根据初始颜色设置一次自身的Tag和颜色，但不扫描场景
+        UpdateSelfFilterSettings(currentFilterColor);
     }
 
-    private void UpdateFilterColor()
+    // 当Filter GameObject被启用时调用
+    void OnEnable()
     {
-        if (filterRenderer != null)
+        // 在启用时，确保Filter自身的Tag和颜色是最新的
+        UpdateSelfFilterSettings(currentFilterColor);
+
+        // 然后根据最新的Tag扫描场景并禁用匹配的物体
+        Debug.Log($"Filter '{gameObject.name}' (Tag: {currentFilterTag}) 启用。禁用场景中Interaction层的同Tag物体。", this);
+        FindAndCacheAffectedObjects(); // 重新查找受影响的物体
+        SetInteractionObjectsActive(false); // 禁用符合条件的物体
+    }
+
+    // 当Filter GameObject被禁用时调用
+    void OnDisable()
+    {
+        // 在禁用时，确保Filter自身的Tag和颜色是最新的
+        UpdateSelfFilterSettings(currentFilterColor);
+
+        // 然后根据最新的Tag扫描场景并启用匹配的物体
+        Debug.Log($"Filter '{gameObject.name}' (Tag: {currentFilterTag}) 禁用。启用场景中Interaction层的同Tag物体。", this);
+        FindAndCacheAffectedObjects(); // 重新查找受影响的物体
+        SetInteractionObjectsActive(true); // 启用符合条件的物体
+    }
+
+    /// <summary>
+    /// 外部调用此方法来修改Filter的颜色和对应的Tag。
+    /// 此方法只改变Filter自身的Tag和颜色，不会立即触发对场景中Interaction层物体的操作。
+    /// 实际的场景物体操作会在Filter的OnEnable/OnDisable时发生。
+    /// </summary>
+    /// <param name="newColor">新的Filter颜色。</param>
+    public void SetFilterColorAndTag(FilterColor newColor)
+    {
+        if (currentFilterColor != newColor)
         {
-            Color filterColor = GameConstants.GetColor(currentFilterColor);
-            filterColor.a = filterAlpha;
-            filterRenderer.color = filterColor;
+            Debug.Log($"External call: Changing Filter color from {currentFilterColor} to {newColor}.", this);
+            currentFilterColor = newColor;
+            // 仅仅更新Filter自身的Tag和颜色，不触发场景扫描和物体激活状态改变
+            UpdateSelfFilterSettings(currentFilterColor);
         }
     }
 
-    private void ApplyFilterToScene()
+    /// <summary>
+    /// 内部方法：根据传入的FilterColor枚举，设置Filter自身的GameObject的Tag和SpriteRenderer的颜色。
+    /// 此方法不触发现场中其他Interaction层物体的查找或状态改变。
+    /// </summary>
+    /// <param name="color">要应用的Filter颜色。</param>
+    private void UpdateSelfFilterSettings(FilterColor color)
     {
-        // 清空之前的影响列表
-        affectedObjects.Clear();
+        // 1. 设置Filter的GameObject的Tag
+        currentFilterTag = GameConstants.GetColorTag(color);
+        gameObject.tag = currentFilterTag; // 更新GameObject的Tag
 
-        // 获取当前滤镜颜色对应的标签
-        string targetTag = GameConstants.GetColorTag(currentFilterColor);
-
-        // 查找所有带有目标标签的物体
-        GameObject[] taggedObjects = GameObject.FindGameObjectsWithTag(targetTag);
-
-        foreach (GameObject obj in taggedObjects)
+        // 2. 设置Filter的SpriteRenderer的颜色
+        if (spriteRenderer != null)
         {
-            // 禁用物体（使其不可见和不可交互）
-            obj.SetActive(false);
-            affectedObjects.Add(obj);
+            Color tempColor = GameConstants.GetColor(color);
+            tempColor.a = filterAlpha;
+            spriteRenderer.color = tempColor;
         }
-
-        Debug.Log($"Applied filter to {affectedObjects.Count} objects with tag: {targetTag}");
+        // Debug.Log($"Filter self settings updated to Tag: {currentFilterTag}, Color: {color}.", this);
     }
 
-    private void RestoreAffectedObjects()
+
+    /// <summary>
+    /// 查找所有场景中Interaction层且Tag与Filter当前Tag相同的物体，并缓存到affectedObjects列表中。
+    /// 此方法会在Filter启用/禁用时调用，以确保使用最新的Filter Tag。
+    /// </summary>
+    private void FindAndCacheAffectedObjects()
     {
-        // 恢复所有被影响的物体
-        foreach (GameObject obj in affectedObjects)
+        affectedObjects.Clear(); // 清空之前的列表
+
+        // 使用 LayerMask 来更有效地过滤 GameObject
+        int layerMask = 1 << interactionLayerIndex; // 创建一个只包含 Interaction 层的LayerMask
+
+        // FindObjectsOfTypeAll 是在所有场景加载的物体中查找，包括非激活的
+        // 但通常我们关心的是场景中的实际物体，所以我们遍历所有 Transform 并过滤
+        Transform[] allTransforms = Resources.FindObjectsOfTypeAll<Transform>();
+
+        foreach (Transform t in allTransforms)
         {
-            if (obj != null)
+            // 过滤Editor内部对象和Prefab Assets
+            if (t.gameObject.hideFlags == HideFlags.NotEditable || t.gameObject.hideFlags == HideFlags.HideAndDontSave)
             {
-                obj.SetActive(true);
+                continue;
             }
-        }
-
-        affectedObjects.Clear();
-        Debug.Log("Restored all affected objects");
-    }
-
-    private void AdjustFilterOverlaySize()
-    {
-        if (filterRenderer == null) return;
-
-        // 获取主相机
-        Camera mainCamera = Camera.main;
-        if (mainCamera == null) return;
-
-        // 计算相机视野范围
-        float cameraHeight = 2f * mainCamera.orthographicSize;
-        float cameraWidth = cameraHeight * mainCamera.aspect;
-
-        // 调整滤镜覆盖层大小和位置
-        filterOverlay.transform.position = mainCamera.transform.position;
-        filterOverlay.transform.localScale = new Vector3(cameraWidth, cameraHeight, 1f);
-    }
-
-    // 公共方法
-    public FilterColor GetCurrentFilterColor()
-    {
-        return currentFilterColor;
-    }
-
-    public bool IsFilterActive()
-    {
-        return isFilterActive;
-    }
-
-    public int GetAffectedObjectsCount()
-    {
-        return affectedObjects.Count;
-    }
-
-    // 在相机移动时更新滤镜位置
-    void LateUpdate()
-    {
-        if (isFilterActive)
-        {
-            AdjustFilterOverlaySize();
-        }
-    }
-
-    // Debug可视化
-    private void OnDrawGizmosSelected()
-    {
-        if (isFilterActive && affectedObjects.Count > 0)
-        {
-            Gizmos.color = GameConstants.GetColor(currentFilterColor);
-            foreach (GameObject obj in affectedObjects)
+            if (t.gameObject.scene.rootCount == 0 && !string.IsNullOrEmpty(t.gameObject.scene.name))
             {
-                if (obj != null)
+                continue;
+            }
+
+            // 忽略FilterSystem自身
+            if (t.gameObject == gameObject)
+            {
+                continue;
+            }
+
+            // 检查Layer是否匹配 Interaction Layer
+            // 使用位运算检查Layer是否在LayerMask中
+            if ((1 << t.gameObject.layer & layerMask) != 0)
+            {
+                // 检查Tag是否匹配Filter的当前Tag
+                if (t.gameObject.CompareTag(currentFilterTag))
                 {
-                    Gizmos.DrawWireCube(obj.transform.position, obj.transform.localScale);
+                    affectedObjects.Add(t.gameObject);
                 }
             }
         }
+        Debug.Log($"FilterSystem found {affectedObjects.Count} objects in Interaction layer with tag '{currentFilterTag}'.", this);
+    }
+
+
+    /// <summary>
+    /// 设置缓存列表中Interaction层且Tag与Filter相同的物体的Active状态。
+    /// </summary>
+    /// <param name="isActive">true为启用，false为禁用。</param>
+    private void SetInteractionObjectsActive(bool isActive)
+    {
+        foreach (GameObject obj in affectedObjects)
+        {
+            // 只有当物体当前状态与目标状态不同时才改变，减少不必要的Set Active操作
+            if (obj != null && obj.activeSelf != isActive)
+            {
+                obj.SetActive(isActive);
+            }
+        }
+    }
+
+    // 在Editor中添加一个按钮，用于手动刷新affectedObjects列表
+    // 以防在运行时有新的Interaction物体被创建或销毁
+    [ContextMenu("Refresh Affected Objects List")]
+    private void EditorRefreshAffectedObjects()
+    {
+        // 手动刷新时也需要确保Filter自身的Tag和颜色是最新的
+        UpdateSelfFilterSettings(currentFilterColor);
+        FindAndCacheAffectedObjects();
     }
 }
