@@ -4,6 +4,7 @@ using System.Collections.Generic;
 // 确保你已经有了 FilterColor 枚举和 GameConstants 类
 // public enum FilterColor { Red, Blue, Green, Yellow, Purple }
 // public static class GameConstants { ... } // 你的 GameConstants 类
+// Assuming GameConstants and FilterColor are defined elsewhere and accessible
 
 public class FilterSystem : MonoBehaviour
 {
@@ -41,6 +42,7 @@ public class FilterSystem : MonoBehaviour
         }
 
         // 在Awake时根据初始颜色设置一次自身的Tag和颜色，但不扫描场景
+        // PlayerController will call SetFilterColorAndTag, so we just initialize our internal state.
         UpdateSelfFilterSettings(currentFilterColor);
     }
 
@@ -82,6 +84,19 @@ public class FilterSystem : MonoBehaviour
             currentFilterColor = newColor;
             // 仅仅更新Filter自身的Tag和颜色，不触发场景扫描和物体激活状态改变
             UpdateSelfFilterSettings(currentFilterColor);
+
+            // If the filter is currently active, we need to refresh the affected objects
+            // to reflect the new color immediately.
+            if (gameObject.activeSelf)
+            {
+                // First, reactivate objects that were affected by the OLD color.
+                // This requires us to know the old tag, which is why we must clear and re-scan.
+                // A more robust solution might cache objects per color or use a global manager.
+                // For this minimal change, we'll re-scan and apply the new state.
+                Debug.Log($"Filter color changed while active. Refreshing affected objects for new color: {newColor}.", this);
+                FindAndCacheAffectedObjects(); // Rescan with new tag
+                SetInteractionObjectsActive(false); // Apply new state (disable for the new tag)
+            }
         }
     }
 
@@ -135,7 +150,7 @@ public class FilterSystem : MonoBehaviour
             }
 
             // 忽略FilterSystem自身
-            if (t.gameObject == gameObject)
+            if (t.gameObject == this.gameObject) // Use 'this.gameObject' for clarity and safety
             {
                 continue;
             }
