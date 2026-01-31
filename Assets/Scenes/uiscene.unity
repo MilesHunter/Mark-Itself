@@ -1205,7 +1205,7 @@ BoxCollider2D:
   m_GameObject: {fileID: 766720444}
   m_Enabled: 1
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: b2bbc8cb403231c418e0cce8f397951b, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -1775,13 +1775,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1247016097}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: 0.011636794, z: -0, w: 0.9999323}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 500, y: 20, z: 20}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 1.334, z: 0}
 --- !u!1 &1262409429
 GameObject:
   m_ObjectHideFlags: 0
@@ -2592,10 +2592,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5582912228245096246, guid: e9f8b4eccdbe1d24a9b0f735c66df8ba, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 6200000, guid: b2bbc8cb403231c418e0cce8f397951b, type: 2}
     - target: {fileID: 5610247667459336043, guid: e9f8b4eccdbe1d24a9b0f735c66df8ba, type: 3}
       propertyPath: jumpAnimation
       value: 
       objectReference: {fileID: 7400000, guid: b4f8912955cdf244ab181223eb71f3c2, type: 2}
+    - target: {fileID: 6436155189092548726, guid: e9f8b4eccdbe1d24a9b0f735c66df8ba, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 6200000, guid: b2bbc8cb403231c418e0cce8f397951b, type: 2}
     - target: {fileID: 8070418071933289499, guid: e9f8b4eccdbe1d24a9b0f735c66df8ba, type: 3}
       propertyPath: jumpForce
       value: 6
