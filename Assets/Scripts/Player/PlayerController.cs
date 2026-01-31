@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class PlayerController : MonoBehaviour
 {
@@ -34,6 +35,9 @@ public class PlayerController : MonoBehaviour
 
     // Skill system
     private bool skillActive = false;
+    private FilterSystem filterSystemComponent; // Added to cache component
+    private MaskSystem maskSystemComponent;     // Added to cache component
+
 
     // Respawn system
     private Vector3 currentRespawnPoint;
@@ -61,10 +65,17 @@ public class PlayerController : MonoBehaviour
         animator = GetComponent<Animator>();
 
         // Get skill components
+        if (filterSystem != null)
+            filterSystemComponent = filterSystem.GetComponent<FilterSystem>();
+        if (maskSystem != null)
+            maskSystemComponent = maskSystem.GetComponent<MaskSystem>();
 
         // Initialize skill systems with current color
-        if (filterSystem != null)
-            filterSystem.GetComponent<FilterSystem>().SetFilterColorAndTag(currentColor);
+        // Now calling the SetFilterColorAndTag or SetMaskColor methods directly
+        if (filterSystemComponent != null)
+            filterSystemComponent.SetFilterColorAndTag(currentColor);
+        if (maskSystemComponent != null)
+            maskSystemComponent.SetMaskColor(currentColor); // Ensure MaskSystem is also initialized
 
         // Set initial respawn point
         currentRespawnPoint = transform.position;
@@ -190,9 +201,9 @@ public class PlayerController : MonoBehaviour
         float velocityX = rb.velocity.x;
         float velocityY = rb.velocity.y;
 
-        animator.SetFloat("VelocityX", velocityX);  
-        animator.SetFloat("VelocityY", velocityY);  
-        animator.SetBool(IsGrounded, isGrounded);   
+        animator.SetFloat("VelocityX", velocityX);
+        animator.SetFloat("VelocityY", velocityY);
+        animator.SetBool(IsGrounded, isGrounded);
         animator.SetBool(IsRunning, Mathf.Abs(velocityX) > 0.1f && isGrounded);
     }
 
@@ -203,6 +214,17 @@ public class PlayerController : MonoBehaviour
 
         // Switch to the other skill
         currentSkill = currentSkill == SkillType.FilterSystem ? SkillType.MaskSystem : SkillType.FilterSystem;
+
+        // Re-apply the current color to the newly active skill system
+        // This ensures the new skill system immediately takes on the player's chosen color.
+        if (currentSkill == SkillType.FilterSystem && filterSystemComponent != null)
+        {
+            filterSystemComponent.SetFilterColorAndTag(currentColor);
+        }
+        else if (currentSkill == SkillType.MaskSystem && maskSystemComponent != null)
+        {
+            maskSystemComponent.SetMaskColor(currentColor);
+        }
 
         // Notify listeners
         OnSkillChanged?.Invoke(currentSkill);
@@ -229,8 +251,6 @@ public class PlayerController : MonoBehaviour
                 break;
         }
     }
-
-
 
     private void DeactivateSkill()
     {
@@ -288,24 +308,24 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Sets the player's current skill color. This method can be called by UI Buttons.
+    /// </summary>
+    /// <param name="newColor">The new color to set for the player's skill.</param>
     public void SetSkillColor(FilterColor newColor)
     {
         if (currentColor == newColor) return;
 
         currentColor = newColor;
 
-        // 更新当前技能系统的颜色
-        switch (currentSkill)
+        // Update the color of the currently active skill system
+        if (currentSkill == SkillType.FilterSystem && filterSystemComponent != null)
         {
-            case SkillType.FilterSystem:
-                if (filterSystem != null)
-                    filterSystem.GetComponent<FilterSystem>().SetFilterColorAndTag(currentColor);
-                break;
-
-            case SkillType.MaskSystem:
-                if (maskSystem != null)
-                    maskSystem.GetComponent<MaskSystem>().SetMaskColor(currentColor);
-                break;
+            filterSystemComponent.SetFilterColorAndTag(currentColor);
+        }
+        else if (currentSkill == SkillType.MaskSystem && maskSystemComponent != null)
+        {
+            maskSystemComponent.SetMaskColor(currentColor);
         }
 
         OnColorChanged?.Invoke(currentColor);
