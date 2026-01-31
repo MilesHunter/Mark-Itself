@@ -11,9 +11,10 @@ GameObject:
   - component: {fileID: 3787530668231751146}
   - component: {fileID: 5825661008466778437}
   - component: {fileID: 4766403498650075917}
-  m_Layer: 0
+  - component: {fileID: 7429346572686566774}
+  m_Layer: 6
   m_Name: Mask
-  m_TagString: Untagged
+  m_TagString: Red
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -98,10 +99,44 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf956eb867d1fdf448b2bd17a34ae04a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  HiddenObjectPool: []
-  rt: {fileID: 0}
+  ts: {fileID: 0}
   spriteRenderer: {fileID: 0}
   maskAlpha: 0.4
+--- !u!58 &7429346572686566774
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 49811027119030974}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  serializedVersion: 2
+  m_Radius: 0.5
 --- !u!1 &765508249216517276
 GameObject:
   m_ObjectHideFlags: 0
@@ -113,11 +148,10 @@ GameObject:
   - component: {fileID: 2633155328062870125}
   - component: {fileID: 2952366967088316922}
   - component: {fileID: 5610247667459336043}
-  - component: {fileID: 1704333631903673143}
   - component: {fileID: 834766621172972727}
   - component: {fileID: 6436155189092548726}
   - component: {fileID: 5582912228245096246}
-  - component: {fileID: 2612850572001038607}
+  - component: {fileID: 8070418071933289499}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -177,29 +211,6 @@ MonoBehaviour:
   idleAnimation: {fileID: 7400000, guid: cca15d110f828214a9b5aa86cef8ada2, type: 2}
   runAnimation: {fileID: 7400000, guid: 53bf4c4421b0e5f4db41604d1c770ad8, type: 2}
   jumpAnimation: {fileID: 7400000, guid: 3ebc53475954d4f4db63a293b3e21f6a, type: 2}
---- !u!114 &1704333631903673143
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 765508249216517276}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d57860ce487756146a304215377898ce, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  moveSpeed: 5
-  jumpForce: 4
-  coyoteTime: 0.2
-  jumpBufferTime: 0.2
-  groundCheck: {fileID: 2633155328062870125}
-  groundCheckRadius: 0.2
-  groundLayerMask:
-    serializedVersion: 2
-    m_Bits: 1
-  currentSkill: 0
-  currentColor: 0
 --- !u!212 &834766621172972727
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -314,7 +325,7 @@ CapsuleCollider2D:
   m_Offset: {x: 0.14405032, y: 0.013504823}
   m_Size: {x: 2.1331277, y: 4.5954514}
   m_Direction: 0
---- !u!114 &2612850572001038607
+--- !u!114 &8070418071933289499
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -327,16 +338,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 5
-  jumpForce: 12
+  jumpForce: 6
   coyoteTime: 0.2
   jumpBufferTime: 0.2
   groundCheck: {fileID: 2633155328062870125}
   groundCheckRadius: 0.2
   groundLayerMask:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 256
   currentSkill: 0
   currentColor: 0
+  maskSystem: {fileID: 49811027119030974}
 --- !u!1 &8880398342083010325
 GameObject:
   m_ObjectHideFlags: 0
@@ -347,7 +359,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8404511620585891498}
   - component: {fileID: 2313001971722463208}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: MaskRange
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -214,7 +214,7 @@ public class GameManager : MonoBehaviour
             player.transform.position = spawnPos;
 
             // Reset player state
-            player.ResetPlayer();
+            //player.ResetPlayer();
         }
         else
         {
@@ -262,7 +262,7 @@ public class GameManager : MonoBehaviour
         {
             Vector3 spawnPos = playerSpawnPoint != null ? playerSpawnPoint.position : Vector3.zero;
             player.transform.position = spawnPos;
-            player.ResetPlayer();
+            // player.ResetPlayer();
         }
         else
         {

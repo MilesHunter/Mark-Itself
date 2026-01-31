@@ -16,6 +16,7 @@ public class PlayerController : MonoBehaviour
     [Header("Skills")]
     [SerializeField] private SkillType currentSkill = SkillType.FilterSystem;
     [SerializeField] private FilterColor currentColor = FilterColor.Red;
+    [SerializeField] private GameObject maskSystem;
 
     // Components
     private Rigidbody2D rb;
@@ -32,7 +33,6 @@ public class PlayerController : MonoBehaviour
 
     // Skill system
     private FilterSystem filterSystem;
-    private GameObject maskSystem;
     private bool skillActive = false;
 
     // Respawn system
@@ -94,6 +94,7 @@ public class PlayerController : MonoBehaviour
         // Jump input
         if (Input.GetKeyDown(KeyCode.Space))
         {
+            Debug.Log("你跳啊");
             jumpBufferCounter = jumpBufferTime;
         }
 
@@ -106,11 +107,16 @@ public class PlayerController : MonoBehaviour
         // Skill activation
         if (Input.GetMouseButtonDown(1)) // Right mouse button
         {
-            ActivateSkill();
-        }
-        else if (Input.GetMouseButtonUp(1))
-        {
-            DeactivateSkill();
+            if (skillActive)
+            {
+                DeactivateSkill();
+                skillActive = false;
+            }
+            else
+            {
+                ActivateSkill();
+                skillActive = true;
+            }
         }
     }
 
