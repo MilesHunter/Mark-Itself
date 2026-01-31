@@ -3,6 +3,14 @@ using System.Collections.Generic;
 
 public class PlayerController : MonoBehaviour
 {
+    [Header("Death / Respawn")]
+    [SerializeField] private float deathRespawnDelay = 0.5f;
+
+    private bool isDead;
+    private bool isRespawning;
+    private Coroutine deathRoutine;
+    private RigidbodyType2D rbTypeBeforeDeath;
+
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float jumpForce = 12f;
@@ -48,6 +56,8 @@ public class PlayerController : MonoBehaviour
     private static readonly int VerticalVelocity = Animator.StringToHash("VerticalVelocity");
     private static readonly int CanLand = Animator.StringToHash("CanLand");
     private static readonly int JumpTrigger = Animator.StringToHash("Jump");
+    private static readonly int DeathTrigger = Animator.StringToHash("Death");
+    private static readonly int RespawnTrigger = Animator.StringToHash("Respawn");
 
 
     public enum SkillType
@@ -86,6 +96,8 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        if (isDead) return;
+
         HandleInput();
         UpdateGroundedState();
         UpdateTimers();
@@ -94,6 +106,7 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (isDead) return;
         HandleMovement();
     }
 
@@ -301,12 +314,61 @@ public class PlayerController : MonoBehaviour
         Debug.Log($"Player respawned at: {currentRespawnPoint}");
     }
 
+    private void Die()
+    {
+        if (isDead) return;
+        isDead = true;
+
+        controlsEnabled = false;
+        horizontalInput = 0f;
+        jumpBufferCounter = 0f;
+        coyoteTimeCounter = 0f;
+
+        rb.velocity = Vector2.zero;
+
+        if (rb != null)
+        {
+            rbTypeBeforeDeath = rb.bodyType;
+            rb.bodyType = RigidbodyType2D.Static;
+        }
+
+        if (animator != null)
+        {
+            animator.speed = 1f;
+            animator.SetTrigger(DeathTrigger);
+        }
+
+        if (deathRoutine != null)
+            StopCoroutine(deathRoutine);
+        deathRoutine = StartCoroutine(DeathSequence());
+    }
+
+    private System.Collections.IEnumerator DeathSequence()
+    {
+        yield return new WaitForSeconds(deathRespawnDelay);
+
+        if (rb != null)
+            rb.bodyType = rbTypeBeforeDeath;
+
+        RespawnPlayer();
+
+        if (animator != null)
+        {
+            animator.speed = 1f;
+            animator.SetTrigger(RespawnTrigger);
+        }
+
+        isDead = false;
+        controlsEnabled = true;
+        deathRoutine = null;
+    }
+
     // Called when player falls into trap or gets stuck
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("DeathZone") || other.CompareTag("Trap"))
         {
-            RespawnPlayer();
+            Die();
         }
         else if (other.CompareTag("RespawnPoint"))
         {
