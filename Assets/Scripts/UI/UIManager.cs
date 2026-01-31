@@ -8,15 +8,12 @@ public class UIManager : MonoBehaviour
     [Header("颜色选择系统")]
     [SerializeField] private Transform placeRGB; // PlaceRGB容器（包含Vertical Layout Group）
     [SerializeField] private GameObject colorButtonPrefab; // ColorButton预制体
-    [SerializeField] private Color[] presetColors = new Color[] // 预设颜色数组
+    [SerializeField]
+    private FilterColor[] presetColors = new FilterColor[] // 预设颜色数组
     {
-        Color.red,
-        Color.green,
-        Color.blue,
-        Color.yellow,
-        Color.magenta,
-        Color.cyan,
-        Color.white
+        FilterColor.Red,
+        FilterColor.Green,
+        FilterColor.Blue
     };
 
     [Header("技能显示区域")]
@@ -33,7 +30,7 @@ public class UIManager : MonoBehaviour
 
     // 私有变量
     private List<Button> colorButtons = new List<Button>(); // 颜色按钮列表
-    private Color currentSelectedColor = Color.white; // 当前选择的颜色
+    private FilterColor currentSelectedFilterColor; // 当前选择的FilterColor枚举
     private int currentSelectedColorIndex = 0; // 当前选择的颜色索引
     private bool isPaused = false; // 游戏是否暂停
     private PlayerController playerController; // 玩家控制器引用
@@ -42,7 +39,7 @@ public class UIManager : MonoBehaviour
     public static UIManager Instance { get; private set; }
 
     // 事件系统
-    public System.Action<Color> OnColorChanged; // 颜色改变事件
+    public System.Action<FilterColor> OnFilterColorChanged; // 颜色改变事件，现在直接使用FilterColor
     public System.Action<bool> OnPauseStateChanged; // 暂停状态改变事件
 
     void Awake()
@@ -60,6 +57,10 @@ public class UIManager : MonoBehaviour
 
         // 获取玩家控制器引用
         playerController = FindObjectOfType<PlayerController>();
+        if (playerController == null)
+        {
+            Debug.LogError("UIManager: PlayerController not found in the scene!", this);
+        }
     }
 
     void Start()
@@ -90,7 +91,7 @@ public class UIManager : MonoBehaviour
         // 设置初始颜色
         if (presetColors.Length > 0)
         {
-            SelectColor(0);
+            SelectFilterColor(presetColors[0]); // 使用新的方法设置初始颜色
         }
     }
 
@@ -98,7 +99,7 @@ public class UIManager : MonoBehaviour
     {
         if (placeRGB == null || colorButtonPrefab == null)
         {
-            Debug.LogError("PlaceRGB容器或ColorButton预制体未设置！");
+            Debug.LogError("PlaceRGB容器或ColorButton预制体未设置！", this);
             return;
         }
 
@@ -108,25 +109,28 @@ public class UIManager : MonoBehaviour
             Destroy(child.gameObject);
         }
         colorButtons.Clear();
-
+        Debug.Log($"当前有{presetColors.Length}个颜色");
         // 根据预设颜色数量生成按钮
         for (int i = 0; i < presetColors.Length; i++)
         {
             GameObject buttonObj = Instantiate(colorButtonPrefab, placeRGB);
+            buttonObj.SetActive(true);
             Button button = buttonObj.GetComponent<Button>();
 
             if (button != null)
             {
                 // 设置按钮颜色
                 Image buttonImage = button.GetComponent<Image>();
+                FilterColor colorToAssign = presetColors[i]; // 捕获当前迭代的颜色
+
                 if (buttonImage != null)
                 {
-                    buttonImage.color = presetColors[i];
+                    buttonImage.color = GameConstants.GetColor(colorToAssign);
+                    Debug.Log($"buttonImage Exists! The color is {buttonImage.color}");
                 }
 
-                // 添加点击事件
-                int colorIndex = i; // 闭包变量
-                button.onClick.AddListener(() => SelectColor(colorIndex));
+                // 修改：直接将 FilterColor 传递给一个新的 public 方法
+                button.onClick.AddListener(() => SelectFilterColor(colorToAssign));
 
                 colorButtons.Add(button);
             }
@@ -158,8 +162,13 @@ public class UIManager : MonoBehaviour
         // 监听玩家技能切换事件
         if (playerController != null)
         {
-            // 假设PlayerController有技能切换事件
+            // 假设PlayerController有技能切换事件，现在已在PlayerController中添加
             // playerController.OnSkillChanged += UpdateSkillDisplay;
+            playerController.OnColorChanged += (newColor) => {
+                // 当PlayerController的颜色通过其他方式改变时，更新UI的选中状态
+                currentSelectedFilterColor = newColor;
+                UpdateColorButtonStates();
+            };
         }
     }
 
@@ -172,29 +181,55 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // 颜色选择相关方法
-    public void SelectColor(int colorIndex)
+    /// <summary>
+    /// 公开方法，用于UI按钮点击时选择一个FilterColor。
+    /// </summary>
+    /// <param name="selectedColor">要选择的FilterColor。</param>
+    public void SelectFilterColor(FilterColor selectedColor)
     {
-        if (colorIndex < 0 || colorIndex >= presetColors.Length)
+        // 查找当前颜色的索引
+        int index = -1;
+        for (int i = 0; i < presetColors.Length; i++)
         {
-            Debug.LogWarning($"颜色索引 {colorIndex} 超出范围！");
+            if (presetColors[i] == selectedColor)
+            {
+                index = i;
+                break;
+            }
+        }
+
+        if (index == -1)
+        {
+            Debug.LogWarning($"选择的颜色 {selectedColor} 不在预设颜色列表中！", this);
             return;
         }
 
-        currentSelectedColorIndex = colorIndex;
-        currentSelectedColor = presetColors[colorIndex];
+        currentSelectedColorIndex = index;
+        currentSelectedFilterColor = selectedColor;
 
         // 更新按钮视觉状态
         UpdateColorButtonStates();
 
         // 触发颜色改变事件
-        OnColorChanged?.Invoke(currentSelectedColor);
+        OnFilterColorChanged?.Invoke(currentSelectedFilterColor);
 
-        // 通知技能系统颜色改变
-        NotifySkillSystemColorChange();
+        // 通知PlayerController颜色改变
+        NotifySkillSystemColorChange(currentSelectedFilterColor);
 
-        Debug.Log($"选择了颜色: {currentSelectedColor}");
+        Debug.Log($"选择了颜色: {currentSelectedFilterColor}");
     }
+
+    // 将原有的 SelectColor(int colorIndex) 调整为私有方法，并在内部调用 SelectFilterColor
+    private void SelectColor(int colorIndex)
+    {
+        if (colorIndex < 0 || colorIndex >= presetColors.Length)
+        {
+            Debug.LogWarning($"颜色索引 {colorIndex} 超出范围！", this);
+            return;
+        }
+        SelectFilterColor(presetColors[colorIndex]);
+    }
+
 
     private void UpdateColorButtonStates()
     {
@@ -202,12 +237,11 @@ public class UIManager : MonoBehaviour
         {
             if (colorButtons[i] != null)
             {
-                // 可以在这里添加选中状态的视觉效果
-                // 比如边框、缩放等
                 Transform buttonTransform = colorButtons[i].transform;
-                if (i == currentSelectedColorIndex)
+                if (presetColors[i] == currentSelectedFilterColor) // 直接比较FilterColor枚举
                 {
                     buttonTransform.localScale = Vector3.one * 1.1f; // 选中时稍微放大
+                    // 可选：添加其他选中状态的视觉效果，例如修改Image的Sprite或添加边框
                 }
                 else
                 {
@@ -217,39 +251,13 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    private void NotifySkillSystemColorChange()
+    private void NotifySkillSystemColorChange(FilterColor newColor)
     {
         // 通知PlayerController颜色改变，让它处理技能系统的颜色更新
         if (playerController != null)
         {
-            // 将Unity Color转换为FilterColor枚举
-            FilterColor filterColor = ConvertColorToFilterColor(currentSelectedColor);
-            playerController.SetSkillColor(filterColor);
+            playerController.SetSkillColor(newColor);
         }
-    }
-
-    private FilterColor ConvertColorToFilterColor(Color color)
-    {
-        // 根据颜色值匹配对应的FilterColor枚举
-        if (ColorApproximatelyEqual(color, Color.red))
-            return FilterColor.Red;
-        else if (ColorApproximatelyEqual(color, Color.green))
-            return FilterColor.Green;
-        else if (ColorApproximatelyEqual(color, Color.blue))
-            return FilterColor.Blue;
-        else if (ColorApproximatelyEqual(color, Color.yellow))
-            return FilterColor.Yellow;
-        else if (ColorApproximatelyEqual(color, GameConstants.PURPLE_COLOR))
-            return FilterColor.Purple;
-        else
-            return FilterColor.Red; // 默认返回红色
-    }
-
-    private bool ColorApproximatelyEqual(Color a, Color b, float threshold = 0.1f)
-    {
-        return Mathf.Abs(a.r - b.r) < threshold &&
-               Mathf.Abs(a.g - b.g) < threshold &&
-               Mathf.Abs(a.b - b.b) < threshold;
     }
 
     // 技能显示相关方法
@@ -322,8 +330,12 @@ public class UIManager : MonoBehaviour
         // 将玩家传送到最近的复活点
         if (playerController != null)
         {
-            Vector3 respawnPosition = RespawnPoint.GetCurrentRespawnPosition();
-            if (respawnPosition != Vector3.zero)
+            // Assuming RespawnPoint.GetCurrentRespawnPosition() is a static method returning Vector3
+            // If it's not static, you'd need a reference to a RespawnPoint instance.
+            // For now, I'll assume it's static or you have a way to get this.
+            // If playerController also manages respawn points, you could call playerController.RespawnPlayer() directly.
+            Vector3 respawnPosition = playerController.GetRespawnPoint(); // Use playerController's stored respawn point
+            if (respawnPosition != Vector3.zero) // Check if the respawn point is valid
             {
                 playerController.transform.position = respawnPosition;
 
@@ -355,9 +367,9 @@ public class UIManager : MonoBehaviour
     }
 
     // 公共访问方法
-    public Color GetCurrentSelectedColor()
+    public FilterColor GetCurrentSelectedFilterColor()
     {
-        return currentSelectedColor;
+        return currentSelectedFilterColor;
     }
 
     public int GetCurrentSelectedColorIndex()
@@ -370,7 +382,7 @@ public class UIManager : MonoBehaviour
         return isPaused;
     }
 
-    public void SetPresetColors(Color[] colors)
+    public void SetPresetColors(FilterColor[] colors)
     {
         presetColors = colors;
         GenerateColorButtons();
@@ -411,5 +423,13 @@ public class UIManager : MonoBehaviour
 
         // 恢复时间缩放
         Time.timeScale = 1f;
+
+        // 取消订阅PlayerController的事件，防止内存泄漏
+        //if (playerController != null)
+        //{
+        //    playerController.OnSkillChanged -= UpdateSkillDisplay;
+        //    // Also unsubscribe from OnColorChanged if you add it.
+        //    // playerController.OnColorChanged -= (newColor) => { ... }; // This specific lambda needs to be re-assigned to a named method to unsubscribe properly.
+        //}
     }
 }

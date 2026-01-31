@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
+using static UnityEngine.GraphicsBuffer; // This might cause issues if not used or if GraphicsBuffer isn't available
 
+// Assuming FilterColor and GameConstants are defined elsewhere and accessible
 public class MaskSystem : MonoBehaviour
 {
     [Header("Hidden Object Pool")]
-    [SerializeField] private Transform ts;
+    [SerializeField] private Transform ts; // Not used in provided code, consider removing if not needed
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private float maskAlpha = 0.4f;
     private Collider2D selfCollider;
@@ -20,6 +21,15 @@ public class MaskSystem : MonoBehaviour
         {
             Debug.LogError("OverlapDetector requires a Collider2D component on the same GameObject.", this);
             enabled = false; // 如果没有Collider2D，禁用脚本
+        }
+
+        if (spriteRenderer == null)
+        {
+            spriteRenderer = GetComponent<SpriteRenderer>();
+            if (spriteRenderer == null)
+            {
+                Debug.LogError("MaskSystem requires a SpriteRenderer component to change color.", this);
+            }
         }
     }
 
@@ -38,6 +48,10 @@ public class MaskSystem : MonoBehaviour
         {
             // 如果Tag不一致，勾选对方的Is Trigger
             Debug.Log($"物体 {gameObject.name} (Tag: {gameObject.tag}) 与 {otherCollider.gameObject.name} (Tag: {otherCollider.gameObject.tag}) 发生碰撞，Tag不一致，勾选 {otherCollider.gameObject.name} 的 Is Trigger。");
+            // Only modify if it's on the same layer to prevent unintended interactions with other game elements
+            // Note: Your original code had layer == gameObject.layer, which might be too restrictive.
+            // If interaction layer is different, you might need a specific layer mask.
+            // For now, retaining the original logic for minimal change.
             if (otherCollider.gameObject.layer == gameObject.layer)
             {
                 otherCollider.isTrigger = true;
@@ -46,10 +60,6 @@ public class MaskSystem : MonoBehaviour
     }
 
     // 当有其他Collider2D离开当前Collider2D的触发区域时调用
-    // 这个方法可以用于在物体分离时进行一些清理工作，
-    // 例如，如果你希望当它们不再重叠时，将 isTrigger 恢复到默认状态。
-    // 在本例中，我们只在进入时修改，所以OnTriggerExit2D不强制需要，
-    // 但根据具体游戏逻辑你可能需要它。
     void OnTriggerExit2D(Collider2D otherCollider)
     {
         // 示例：当分离时，可以考虑将对方的 isTrigger 恢复到默认值 (例如，都设为true)
@@ -64,33 +74,22 @@ public class MaskSystem : MonoBehaviour
 
     public void SetMaskColor(FilterColor col)
     {
-        Color tempColor = new Color(0, 0, 0);
-        switch (col)
+        Color tempColor; // Declare once
+
+        // 1. Set the GameObject's Tag based on the new color
+        gameObject.tag = GameConstants.GetColorTag(col);
+
+        // 2. Set the SpriteRenderer's color
+        if (spriteRenderer != null)
         {
-            case FilterColor.Red:
-                tempColor = new Color(255, 0, 0);
-                tag = GameConstants.TAG_RED_OBJECT;
-                tempColor.a = maskAlpha;
-                spriteRenderer.color = tempColor;
-                break;
-            case FilterColor.Green:
-                tempColor = new Color(0, 255, 0);
-                tag = GameConstants.TAG_RED_OBJECT;
-                tempColor.a = maskAlpha;
-                spriteRenderer.color = tempColor;
-                break;
-            case FilterColor.Blue:
-                tempColor = new Color(0, 0, 255);
-                tag = GameConstants.TAG_RED_OBJECT;
-                tempColor.a = maskAlpha;
-                spriteRenderer.color = tempColor;
-                break;
-            case FilterColor.Yellow:
-                tempColor = new Color(255, 255, 0);
-                tag = GameConstants.TAG_RED_OBJECT;
-                tempColor.a = maskAlpha;
-                spriteRenderer.color = tempColor;
-                break;
+            tempColor = GameConstants.GetColor(col);
+            tempColor.a = maskAlpha;
+            spriteRenderer.color = tempColor;
         }
+        else
+        {
+            Debug.LogWarning("MaskSystem: SpriteRenderer is not assigned, cannot set visual color.", this);
+        }
+        Debug.Log($"MaskSystem color set to {col}, Tag set to: {gameObject.tag}", this);
     }
 }
