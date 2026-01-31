@@ -166,7 +166,6 @@ public class PlayerController : MonoBehaviour
     {
         // 先计算当前 grounded 状态
         bool currentGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayerMask) != null;
-
         // 检测是否“刚落地”
         if (currentGrounded && !isGrounded)
         {
@@ -380,7 +379,8 @@ public class PlayerController : MonoBehaviour
     {
         if (groundCheck != null)
         {
-            Gizmos.color = isGrounded ? Color.green : Color.red;
+            bool grounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayerMask) != null;
+            Gizmos.color = grounded ? Color.green : Color.red;
             Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
         }
 
