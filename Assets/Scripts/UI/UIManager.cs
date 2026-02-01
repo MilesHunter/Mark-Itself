@@ -180,7 +180,7 @@ public class UIManager : MonoBehaviour
         // 脱离卡死按钮事件
         //if (escapeStuckButton != null)
         //{
-        //    escapeStuckButton.onClick.AddListener(EscapeStuck);
+        //    PlayerController.isDead = true;
         //}
 
         // 返回主菜单按钮事件
