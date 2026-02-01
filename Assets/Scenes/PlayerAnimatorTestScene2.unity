@@ -1651,12 +1651,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentState: 0
   playerPrefab: {fileID: 3763209578450023358}
-  playerSpawnPoint: {fileID: 3763209578450023366}
   uiManager: {fileID: 656126763}
   pauseMenu: {fileID: 586479832}
   gameOverMenu: {fileID: 801834115}
   respawnDelay: 2
   canPause: 1
+  allRespawnPoints: []
 --- !u!1 &996909860
 GameObject:
   m_ObjectHideFlags: 0
@@ -2810,6 +2810,10 @@ PrefabInstance:
       propertyPath: jumpAnimation
       value: 
       objectReference: {fileID: 7400000, guid: b4f8912955cdf244ab181223eb71f3c2, type: 2}
+    - target: {fileID: 6436155189092548726, guid: e9f8b4eccdbe1d24a9b0f735c66df8ba, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 8070418071933289499, guid: e9f8b4eccdbe1d24a9b0f735c66df8ba, type: 3}
       propertyPath: jumpForce
       value: 6

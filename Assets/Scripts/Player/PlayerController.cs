@@ -33,6 +33,7 @@ public class PlayerController : MonoBehaviour
     private float coyoteTimeCounter;
     private float jumpBufferCounter;
     private bool controlsEnabled = true;
+    private float timeSinceYZero;
 
     // Player State (新增)
     public bool IsDead { get; private set; } = false; // 玩家生死状态
@@ -199,11 +200,31 @@ public class PlayerController : MonoBehaviour
         float velocityX = rb.velocity.x;
         float velocityY = rb.velocity.y;
 
+        // 计算 velocity.y 接近 0 的时间（误差范围）
+        if (Mathf.Abs(velocityY) < 0.1f)  // velocity.y 接近 0 的误差范围
+        {
+            timeSinceYZero += Time.deltaTime;
+        }
+        else
+        {
+            timeSinceYZero = 0f;
+        }
+
+        // 判断 canland 参数
+        bool canLand = velocityY < -5f || timeSinceYZero > 0.3f;
+        animator.SetBool("canland", canLand);
+        if (!isGrounded && canLand)
+            isGrounded = true;
+        bool canJump = false;
+        if (velocityY > 0.2f)
+            canJump = true;
         animator.SetFloat("VelocityX", velocityX);
         animator.SetFloat("VelocityY", velocityY);
+        animator.SetBool("canjump", canJump);
         animator.SetBool(IsGrounded, isGrounded);
         animator.SetBool(IsRunning, Mathf.Abs(velocityX) > 0.1f && isGrounded);
     }
+
 
     private void SwitchSkill()
     {
