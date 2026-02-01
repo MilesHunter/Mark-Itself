@@ -1,11 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
-using System.Collections.Generic; // 添加这个命名空间
-
-// 注意：这里假设 PlayerController 有一个 SetState 方法，
-// 或者你可以通过其他方式来判断玩家的死亡状态。
-// 如果 PlayerController 负责判断死亡，那么 GameManager 只需要监听其死亡事件。
 
 public class GameManager : MonoBehaviour
 {
@@ -14,19 +9,16 @@ public class GameManager : MonoBehaviour
 
     [Header("Player Settings")]
     public GameObject playerPrefab;
-    // 移除 playerRespawnPoint，现在由 RespawnPoint 列表管理
+    public Transform playerSpawnPoint;
 
     [Header("UI References")]
     public UIManager uiManager;
     public GameObject pauseMenu;
-    public GameObject gameOverMenu; // 游戏结束菜单可能不再需要，因为没有生命值
+    public GameObject gameOverMenu;
 
     [Header("Game Settings")]
-    public float respawnDelay = 1f; // 重生延迟
+    public float respawnDelay = 2f;
     public bool canPause = true;
-
-    [Header("Spawn Points")]
-    public List<RespawnPoint> allRespawnPoints = new List<RespawnPoint>(); // 新增：所有重生点的配置表
 
     // Singleton pattern
     public static GameManager Instance { get; private set; }
@@ -36,21 +28,21 @@ public class GameManager : MonoBehaviour
     private GameObject filterSystem;
     private GameObject maskSystem;
 
-    // Game data (分数和时间保持，生命值移除)
+    // Game data
     private int score = 0;
+    private int lives = 3;
     private float gameTime = 0f;
 
-    // Events (移除 OnLivesChanged, OnPlayerDeath 含义变为“玩家需要重生”)
+    // Events
     public System.Action<GameState> OnGameStateChanged;
     public System.Action<int> OnScoreChanged;
-    public System.Action OnPlayerNeedRespawn; // 当玩家需要重生时触发
-
-    // 假设 PlayerController 存在一个接口或公共方法来设置其状态
-    // 或者 GameManager 会直接收到玩家死亡的通知
-    public enum PlayerState { Alive, Dead, Stunned /*或其他状态*/ } // 假设玩家有状态枚举
+    public System.Action<int> OnLivesChanged;
+    public System.Action OnPlayerDeath;
+    public System.Action OnPlayerRespawn;
 
     void Awake()
     {
+        // Singleton setup
         if (Instance == null)
         {
             Instance = this;
@@ -77,75 +69,38 @@ public class GameManager : MonoBehaviour
     #region Game Initialization
     private void InitializeGame()
     {
+        // Find or create UI Manager
         if (uiManager == null)
             uiManager = FindObjectOfType<UIManager>();
 
-        // 在这里收集场景中的所有重生点
-        RefreshRespawnPoints();
+        // Find player or spawn if needed
         FindOrSpawnPlayer();
 
+        // Initialize game data
         score = 0;
+        lives = 3;
         gameTime = 0f;
 
         Debug.Log("GameManager initialized successfully");
     }
 
-    // 新增：刷新重生点列表
-    public void RefreshRespawnPoints()
-    {
-        allRespawnPoints.Clear();
-        RespawnPoint[] foundPoints = FindObjectsOfType<RespawnPoint>();
-        foreach (RespawnPoint sp in foundPoints)
-        {
-            allRespawnPoints.Add(sp);
-        }
-        Debug.Log($"Found {allRespawnPoints.Count} spawn points in the scene.");
-    }
-
     private void FindOrSpawnPlayer()
     {
+        // Try to find existing player
         player = FindObjectOfType<PlayerController>();
 
-        if (player == null && playerPrefab != null)
+        if (player == null && playerPrefab != null && playerSpawnPoint != null)
         {
-            SpawnPlayerAtDefault(); // 初始生成到默认重生点
-        }
-        // 如果玩家已经存在，并且你希望它初始也在默认重生点，可以在这里添加逻辑
-         else if (player != null)
-        {
-            MovePlayerToDefaultSpawn();
+            SpawnPlayer();
         }
     }
 
-    private void MovePlayerToDefaultSpawn()
+    private void SpawnPlayer()
     {
-        TeleportPlayerToNearestLeftSpawnPoint();
-    }
-
-    // 新增：在默认重生点生成玩家
-    private void SpawnPlayerAtDefault()
-    {
-        RespawnPoint defaultSpawn = GetDefaultRespawnPoint();
-        Vector3 spawnPosition = defaultSpawn != null ? defaultSpawn.transform.position : Vector3.zero;
-
+        Vector3 spawnPosition = playerSpawnPoint != null ? playerSpawnPoint.position : Vector3.zero;
         GameObject playerObj = Instantiate(playerPrefab, spawnPosition, Quaternion.identity);
         player = playerObj.GetComponent<PlayerController>();
-        Debug.Log($"Player spawned at default spawn point: {spawnPosition}");
 
-    }
-
-    // 新增：获取默认重生点
-    private RespawnPoint GetDefaultRespawnPoint()
-    {
-        foreach (RespawnPoint sp in allRespawnPoints)
-        {
-            if (sp.isDefaultSpawn)
-            {
-                return sp;
-            }
-        }
-        Debug.LogWarning("No default spawn point found! Using Vector3.zero.");
-        return null; // 没有找到默认重生点
     }
     #endregion
 
@@ -168,7 +123,7 @@ public class GameManager : MonoBehaviour
             case GameState.Playing:
                 Time.timeScale = 1f;
                 if (pauseMenu != null) pauseMenu.SetActive(false);
-                if (gameOverMenu != null) gameOverMenu.SetActive(false); // 可能不再需要
+                if (gameOverMenu != null) gameOverMenu.SetActive(false);
                 break;
 
             case GameState.Paused:
@@ -176,7 +131,7 @@ public class GameManager : MonoBehaviour
                 if (pauseMenu != null) pauseMenu.SetActive(true);
                 break;
 
-            case GameState.GameOver: // 可能不再需要 Game Over 状态
+            case GameState.GameOver:
                 Time.timeScale = 0f;
                 if (gameOverMenu != null) gameOverMenu.SetActive(true);
                 break;
@@ -198,12 +153,14 @@ public class GameManager : MonoBehaviour
             TogglePause();
         }
 
-        // 新增：脱离卡死按钮 (例如 F5)
-        if (Input.GetKeyDown(KeyCode.F5)) // F5 键作为脱离卡死
-        {
-            Debug.Log("Player initiated 'Unstuck' action.");
-            TeleportPlayerToNearestLeftSpawnPoint();
-        }
+        // Debug keys (remove in production)
+        //if (Debug.isDebugBuild)
+        //{
+        //    if (Input.GetKeyDown(KeyCode.R))
+        //        RestartGame();
+        //    if (Input.GetKeyDown(KeyCode.K))
+        //        PlayerDeath();
+        //}
     }
 
     public void TogglePause()
@@ -215,97 +172,45 @@ public class GameManager : MonoBehaviour
     }
     #endregion
 
-    #region Player Management (重命名和修改)
-
-    // 新增：玩家死亡或需要重生的统一入口
-    public void PlayerNeedsRespawn()
+    #region Player Management
+    public void PlayerDeath()
     {
-        if (currentState != GameState.Playing) return; // 只有在游戏中才处理重生
+        if (currentState != GameState.Playing) return;
 
-        Debug.Log("Player needs respawn!");
-        OnPlayerNeedRespawn?.Invoke(); // 触发玩家需要重生的事件
+        lives--;
+        OnLivesChanged?.Invoke(lives);
+        OnPlayerDeath?.Invoke();
 
-        StartCoroutine(RespawnPlayerProcess());
-    }
-
-    // 在 GameManager.cs 中找到 RespawnPlayerProcess 协程
-    private IEnumerator RespawnPlayerProcess()
-    {
-        SetGameState(GameState.Loading);
-
-        // 此时 PlayerController 已经通过 HandlePlayerNeedsRespawn() 将自己设置为死亡状态
-        // 并禁用了控制和物理。
-
-        yield return new WaitForSeconds(respawnDelay);
-
-        TeleportPlayerToNearestLeftSpawnPoint(); // 传送逻辑
-
-        // 玩家已被传送，现在重置其状态并启用控制
-        if (player != null)
+        if (lives <= 0)
         {
-            player.ResetPlayerStateAndEnableControls(); // 调用 PlayerController 的新方法
+            GameOver();
         }
         else
         {
-            // 如果玩家对象在死亡期间被销毁（例如，在 PlayerNeedsRespawn 中销毁），则重新生成
-            // 此时需要确保 SpawnPlayerAtDefault 方法会创建新的 PlayerController 实例，
-            // 并且该实例的 Awake/Start 会正确初始化 IsDead = false 和启用控制。
-            SpawnPlayerAtDefault(); // 如果玩家不存在，重新生成
-            player.ResetPlayerStateAndEnableControls(); // 对新生成的玩家也调用一次
+            StartCoroutine(RespawnPlayer());
+        }
+    }
+
+    private IEnumerator RespawnPlayer()
+    {
+        SetGameState(GameState.Loading);
+        yield return new WaitForSeconds(respawnDelay);
+
+        if (player != null)
+        {
+            // Reset player position
+            Vector3 spawnPos = playerSpawnPoint != null ? playerSpawnPoint.position : Vector3.zero;
+            player.transform.position = spawnPos;
+
+            // Reset player state
+            //player.ResetPlayer();
+        }
+        else
+        {
+            SpawnPlayer();
         }
 
         SetGameState(GameState.Playing);
-        Debug.Log("Player respawned and returned to Playing state.");
-    }
-
-    // 新增：传送到左侧最近的重生点
-    private void TeleportPlayerToNearestLeftSpawnPoint()
-    {
-        if (player == null || allRespawnPoints.Count == 0)
-        {
-            Debug.LogWarning("Cannot teleport: Player not found or no spawn points available.");
-            return;
-        }
-
-        Vector3 currentPlayerPosition = player.transform.position;
-        RespawnPoint nearestLeftSpawn = null;
-        float minDistance = float.MaxValue;
-
-        foreach (RespawnPoint sp in allRespawnPoints)
-        {
-            // 只考虑在玩家左侧的重生点 (X坐标小于玩家)
-            if (sp.transform.position.x < currentPlayerPosition.x)
-            {
-                float distance = Vector3.Distance(currentPlayerPosition, sp.transform.position);
-                if (distance < minDistance)
-                {
-                    minDistance = distance;
-                    nearestLeftSpawn = sp;
-                }
-            }
-        }
-
-        if (nearestLeftSpawn != null)
-        {
-            player.transform.position = nearestLeftSpawn.transform.position;
-            Debug.Log($"Teleported player to nearest left spawn point: {nearestLeftSpawn.gameObject.name} at {nearestLeftSpawn.transform.position}");
-        }
-        else
-        {
-            // 如果没有找到左侧的重生点，可以考虑传送到默认重生点或最近的任何重生点
-            Debug.LogWarning("No spawn point found to the left of the player. Teleporting to default/any nearest spawn.");
-            RespawnPoint defaultSpawn = GetDefaultRespawnPoint();
-            if (defaultSpawn != null)
-            {
-                player.transform.position = defaultSpawn.transform.position;
-                Debug.Log($"Teleported player to default spawn point: {defaultSpawn.gameObject.name} at {defaultSpawn.transform.position}");
-            }
-            else // 如果连默认的都没有，就传送到第一个找到的
-            {
-                player.transform.position = allRespawnPoints[0].transform.position;
-                Debug.Log($"Teleported player to first available spawn point: {allRespawnPoints[0].gameObject.name} at {allRespawnPoints[0].transform.position}");
-            }
-        }
     }
 
     public void AddScore(int points)
@@ -313,10 +218,16 @@ public class GameManager : MonoBehaviour
         score += points;
         OnScoreChanged?.Invoke(score);
     }
+
+    public void AddLife()
+    {
+        lives++;
+        OnLivesChanged?.Invoke(lives);
+    }
     #endregion
 
     #region Game Flow
-    public void GameOver() // 这个方法可能不再需要，因为没有生命值，只有即死和重生
+    public void GameOver()
     {
         SetGameState(GameState.GameOver);
         Debug.Log($"Game Over! Final Score: {score}, Time: {gameTime:F1}s");
@@ -326,17 +237,26 @@ public class GameManager : MonoBehaviour
     {
         SetGameState(GameState.Loading);
 
+        // Reset game data
         score = 0;
+        lives = 3;
         gameTime = 0f;
-        OnScoreChanged?.Invoke(score);
 
-        // 重新生成玩家到默认重生点
+        // Notify UI
+        OnScoreChanged?.Invoke(score);
+        OnLivesChanged?.Invoke(lives);
+
+        // Reset player
         if (player != null)
         {
-            Destroy(player.gameObject); // 销毁现有玩家
-            player = null;
+            Vector3 spawnPos = playerSpawnPoint != null ? playerSpawnPoint.position : Vector3.zero;
+            player.transform.position = spawnPos;
+            // player.ResetPlayer();
         }
-        SpawnPlayerAtDefault(); // 在默认重生点重新生成玩家
+        else
+        {
+            FindOrSpawnPlayer();
+        }
 
         SetGameState(GameState.Playing);
     }
@@ -350,11 +270,11 @@ public class GameManager : MonoBehaviour
     public void QuitGame()
     {
         Debug.Log("Quitting game...");
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#else
+        #if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+        #else
             Application.Quit();
-#endif
+        #endif
     }
     #endregion
 
@@ -408,8 +328,29 @@ public class GameManager : MonoBehaviour
 
     public float GetGameTime() => gameTime;
     public int GetScore() => score;
+    public int GetLives() => lives;
     public PlayerController GetPlayer() => player;
     public GameState GetGameState() => currentState;
+    #endregion
+
+    #region Debug
+    void OnGUI()
+    {
+        if (!Debug.isDebugBuild) return;
+
+        GUILayout.BeginArea(new Rect(10, 10, 200, 150));
+        GUILayout.Label($"State: {currentState}");
+        GUILayout.Label($"Score: {score}");
+        GUILayout.Label($"Lives: {lives}");
+        GUILayout.Label($"Time: {gameTime:F1}s");
+
+        if (GUILayout.Button("Restart (R)"))
+            RestartGame();
+        if (GUILayout.Button("Kill Player (K)"))
+            PlayerDeath();
+
+        GUILayout.EndArea();
+    }
     #endregion
 }
 
@@ -417,33 +358,6 @@ public enum GameState
 {
     Playing,
     Paused,
-    GameOver, // 游戏结束可能不再是必要的独立状态，直接通过重启或退出处理
+    GameOver,
     Loading
 }
-
-// 假设你有这个 PlayerController 脚本
-// 需要在 PlayerController 中添加一个方法或事件，让 GameManager 知道玩家死亡
-// public class PlayerController : MonoBehaviour
-// {
-//     public System.Action OnPlayerDied; // 或者直接让陷阱区调用 GameManager.Instance.PlayerNeedsRespawn()
-//
-//     // 示例：当玩家碰到陷阱
-//     void OnTriggerEnter(Collider other)
-//     {
-//         if (other.CompareTag("Trap"))
-//         {
-//             // 方法一：PlayerController 通知 GameManager
-//             // OnPlayerDied?.Invoke(); 
-//             // 或者
-//             GameManager.Instance.PlayerNeedsRespawn(); // 方法二：PlayerController 直接调用 GameManager
-//             // 并且可能需要禁用玩家的输入和移动直到重生
-//             // gameObject.SetActive(false); // 暂时隐藏玩家
-//         }
-//     }
-//     
-//     // 在 GameManager 重生后，可能需要一个方法来重置玩家状态
-//     public void ResetState()
-//     {
-//         // 重置玩家速度、动画、血量（如果需要）等
-//     }
-// }
