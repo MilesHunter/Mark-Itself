@@ -35,13 +35,17 @@ public class PlayerController : MonoBehaviour
     private bool controlsEnabled = true;
     private float timeSinceYZero;
 
-    // Player State (新增)
-    public bool IsDead { get; private set; } = false; // 玩家生死状态
+    // Player State
+    public bool IsDead { get; private set; } = false;
 
     // Skill system
     private bool skillActive = false;
-    private FilterSystem filterSystemComponent; // Added to cache component
-    private MaskSystem maskSystemComponent;     // Added to cache component
+    private FilterSystem filterSystemComponent;
+    private MaskSystem maskSystemComponent;
+
+    // 新增：技能解锁状态
+    public bool isFilterSkillUnlocked { get; private set; } = false;
+    public bool isMaskSkillUnlocked { get; private set; } = false;
 
     // Animation hashes
     private static readonly int IsRunning = Animator.StringToHash("IsRunning");
@@ -54,36 +58,52 @@ public class PlayerController : MonoBehaviour
         MaskSystem
     }
 
-    // Events (OnPlayerRespawn 含义变为“玩家已被重置并启用”)
+    // Events
     public System.Action<SkillType> OnSkillChanged;
     public System.Action<FilterColor> OnColorChanged;
-    public System.Action OnPlayerResetAndEnabled; // 当玩家被重置并重新启用后触发
+    public System.Action OnPlayerResetAndEnabled;
+    public System.Action<SkillType> OnSkillUnlocked; // 新增：技能解锁事件
 
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
-        playerCollider = GetComponent<Collider2D>(); // 获取玩家碰撞体
+        playerCollider = GetComponent<Collider2D>();
 
         if (filterSystem != null)
             filterSystemComponent = filterSystem.GetComponent<FilterSystem>();
         if (maskSystem != null)
             maskSystemComponent = maskSystem.GetComponent<MaskSystem>();
 
+        // 技能系统初始状态：确保所有技能系统都处于非激活状态，
+        // 并且它们的颜色被初始化，但我们不立即激活它们。
+        // GameManager 负责玩家的初始生成，这里只初始化组件
+        if (filterSystem != null) filterSystem.SetActive(false);
+        if (maskSystem != null) maskSystem.SetActive(false);
+
         if (filterSystemComponent != null)
             filterSystemComponent.SetFilterColorAndTag(currentColor);
         if (maskSystemComponent != null)
             maskSystemComponent.SetMaskColor(currentColor);
 
-        // 初始化玩家为活着的，且控制已启用
         IsDead = false;
-        SetControlsAndPhysics(true); // 确保初始时控制和物理是启用的
+        SetControlsAndPhysics(true);
+
+        // 确保初始时玩家没有激活任何技能
+        DeactivateSkill();
+        skillActive = false; // 明确设置技能为非激活状态
+
+        // 初始时默认技能可能未解锁，或根据游戏设定决定
+        // 默认情况下，如果游戏一开始没有技能球，玩家将没有技能可用。
+        // 如果你希望玩家初始就拥有某个技能，可以这里将其设置为 true。
+        // 例如：
+        // isFilterSkillUnlocked = true; // 玩家初始拥有 Filter 技能
+        // currentSkill = SkillType.FilterSystem; // 将初始技能设置为 Filter
     }
 
     void OnEnable()
     {
-        // 订阅 GameManager 的事件，当玩家被传送后进行重置
         if (GameManager.Instance != null)
         {
             GameManager.Instance.OnPlayerNeedRespawn += HandlePlayerNeedsRespawn;
@@ -92,7 +112,6 @@ public class PlayerController : MonoBehaviour
 
     void OnDisable()
     {
-        // 取消订阅
         if (GameManager.Instance != null)
         {
             GameManager.Instance.OnPlayerNeedRespawn -= HandlePlayerNeedsRespawn;
@@ -101,7 +120,7 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        if (IsDead) return; // 死亡状态下不处理输入和动画更新
+        if (IsDead) return;
 
         HandleInput();
         UpdateGroundedState();
@@ -113,7 +132,7 @@ public class PlayerController : MonoBehaviour
     {
         if (IsDead)
         {
-            rb.velocity = Vector2.zero; // 死亡时停止移动
+            rb.velocity = Vector2.zero;
             return;
         }
 
@@ -131,20 +150,30 @@ public class PlayerController : MonoBehaviour
             jumpBufferCounter = jumpBufferTime;
         }
 
+        // 技能切换逻辑修改
         if (Input.GetKeyDown(KeyCode.R))
         {
             SwitchSkill();
         }
 
-        if (Input.GetMouseButtonDown(1))
+        // 技能激活逻辑修改
+        if (Input.GetMouseButtonDown(1)) // Right mouse button
         {
-            if (skillActive)
+            // 只有当至少一个技能解锁时才能尝试激活/停用
+            if (isFilterSkillUnlocked || isMaskSkillUnlocked)
             {
-                DeactivateSkill();
+                if (skillActive)
+                {
+                    DeactivateSkill();
+                }
+                else
+                {
+                    ActivateSkill();
+                }
             }
             else
             {
-                ActivateSkill();
+                Debug.Log("No skills unlocked yet. Cannot activate.");
             }
         }
     }
@@ -200,8 +229,7 @@ public class PlayerController : MonoBehaviour
         float velocityX = rb.velocity.x;
         float velocityY = rb.velocity.y;
 
-        // 计算 velocity.y 接近 0 的时间（误差范围）
-        if (Mathf.Abs(velocityY) < 0.1f)  // velocity.y 接近 0 的误差范围
+        if (Mathf.Abs(velocityY) < 0.1f)
         {
             timeSinceYZero += Time.deltaTime;
         }
@@ -210,11 +238,14 @@ public class PlayerController : MonoBehaviour
             timeSinceYZero = 0f;
         }
 
-        // 判断 canland 参数
         bool canLand = velocityY < -5f || timeSinceYZero > 0.1f;
         animator.SetBool("canland", canLand);
-        if (!isGrounded && canLand)
-            isGrounded = true;
+        // 注意：这里 'if (!isGrounded && canLand) isGrounded = true;' 可能会与 UpdateGroundedState 冲突或导致逻辑混乱
+        // 通常 isGrounded 应该完全由 Physics2D.OverlapCircle 决定。
+        // 如果你的动画需要一个单独的 'canland' 触发，可以保留，但不要用它来覆盖 isGrounded 的物理检测结果。
+        // 例如，可以这样修改：
+        // if (!isGrounded && canLand && !wasGrounded) { Debug.Log("Animation suggests landing, but physics says still in air."); }
+
         bool canJump = false;
         if (velocityY > 0.2f)
             canJump = true;
@@ -225,21 +256,54 @@ public class PlayerController : MonoBehaviour
         animator.SetBool(IsRunning, Mathf.Abs(velocityX) > 0.1f && isGrounded);
     }
 
-
+    // 技能切换逻辑 (主要修改部分)
     private void SwitchSkill()
     {
+        int unlockedSkillCount = 0;
+        if (isFilterSkillUnlocked) unlockedSkillCount++;
+        if (isMaskSkillUnlocked) unlockedSkillCount++;
+
+        // 如果只有0个或1个技能解锁，则无法切换
+        if (unlockedSkillCount <= 1)
+        {
+            Debug.Log("Cannot switch skills: Less than two skills unlocked.");
+            // 如果只有一个技能解锁，确保 currentSkill 就是那个已解锁的技能
+            if (isFilterSkillUnlocked) currentSkill = SkillType.FilterSystem;
+            else if (isMaskSkillUnlocked) currentSkill = SkillType.MaskSystem;
+            return;
+        }
+
+        // 停用当前技能
         DeactivateSkill();
 
-        currentSkill = currentSkill == SkillType.FilterSystem ? SkillType.MaskSystem : SkillType.FilterSystem;
+        // 切换到下一个已解锁的技能
+        if (currentSkill == SkillType.FilterSystem)
+        {
+            if (isMaskSkillUnlocked)
+            {
+                currentSkill = SkillType.MaskSystem;
+            }
+            else // 如果Filter是当前技能，但Mask未解锁，且有其他技能解锁，理论上不会走到这里，但为了健壮性
+            {
+                Debug.LogWarning("Unexpected skill state during switch, attempting to find next available.");
+                currentSkill = SkillType.FilterSystem; // 回退到自身，或者检查是否有其他技能
+            }
+        }
+        else if (currentSkill == SkillType.MaskSystem)
+        {
+            if (isFilterSkillUnlocked)
+            {
+                currentSkill = SkillType.FilterSystem;
+            }
+            else // 同上
+            {
+                Debug.LogWarning("Unexpected skill state during switch, attempting to find next available.");
+                currentSkill = SkillType.MaskSystem;
+            }
+        }
 
-        if (currentSkill == SkillType.FilterSystem && filterSystemComponent != null)
-        {
-            filterSystemComponent.SetFilterColorAndTag(currentColor);
-        }
-        else if (currentSkill == SkillType.MaskSystem && maskSystemComponent != null)
-        {
-            maskSystemComponent.SetMaskColor(currentColor);
-        }
+        // Re-apply the current color to the newly active skill system (if needed, though ActivateSkill handles activation)
+        // SetSkillColor(currentColor); // 这个方法会处理当前激活技能的颜色设置
 
         OnSkillChanged?.Invoke(currentSkill);
         Debug.Log($"Switched to skill: {currentSkill}");
@@ -249,6 +313,14 @@ public class PlayerController : MonoBehaviour
     {
         if (skillActive) return;
 
+        // 只有当前选择的技能已解锁才能激活
+        if ((currentSkill == SkillType.FilterSystem && !isFilterSkillUnlocked) ||
+            (currentSkill == SkillType.MaskSystem && !isMaskSkillUnlocked))
+        {
+            Debug.LogWarning($"Attempted to activate {currentSkill} skill, but it is not unlocked!");
+            return;
+        }
+
         skillActive = true;
 
         switch (currentSkill)
@@ -257,7 +329,6 @@ public class PlayerController : MonoBehaviour
                 if (filterSystem != null)
                     filterSystem.SetActive(true);
                 break;
-
             case SkillType.MaskSystem:
                 if (maskSystem != null)
                     maskSystem.SetActive(true);
@@ -278,7 +349,6 @@ public class PlayerController : MonoBehaviour
                 if (filterSystem != null)
                     filterSystem.SetActive(false);
                 break;
-
             case SkillType.MaskSystem:
                 if (maskSystem != null)
                     maskSystem.SetActive(false);
@@ -287,92 +357,143 @@ public class PlayerController : MonoBehaviour
         Debug.Log($"Skill deactivated: {currentSkill}");
     }
 
-    /// <summary>
-    /// 当玩家进入死亡区域或需要重置时，GameManager 会调用此方法。
-    /// 玩家的实际传送由 GameManager 处理。
-    /// </summary>
     public void SetPlayerDeathState(bool dead)
     {
         if (IsDead == dead) return;
 
         IsDead = dead;
-        SetControlsAndPhysics(!dead); // 死亡时禁用控制和物理，否则启用
+        SetControlsAndPhysics(!dead);
 
         if (IsDead)
         {
             Debug.Log("Player is now Dead.");
-            DeactivateSkill(); // 死亡时禁用技能
-            // 这里可以触发死亡动画，停止所有声音等
-            // animator.SetTrigger("Die");
+            DeactivateSkill(); // 死亡时禁用所有技能
         }
         else
         {
             Debug.Log("Player is now Alive.");
-            // 玩家重生后的初始化逻辑，例如重置动画状态
-            // animator.SetTrigger("Respawn");
         }
     }
 
-    // 新增：由 GameManager 在重生流程中调用，用于重置玩家状态并启用
     public void ResetPlayerStateAndEnableControls()
     {
         Debug.Log("PlayerController: Resetting state and enabling controls.");
-        SetPlayerDeathState(false); // 设为活着
-        rb.velocity = Vector2.zero; // 重置速度
-                                    // 其他可能需要重置的状态：例如，玩家的动画状态，技能冷却等
+        SetPlayerDeathState(false);
+        rb.velocity = Vector2.zero;
 
-        OnPlayerResetAndEnabled?.Invoke(); // 触发事件，通知其他组件玩家已重置并启用
+        // 确保所有技能UI或状态也被重置到非激活状态
+        DeactivateSkill();
+
+        OnPlayerResetAndEnabled?.Invoke();
     }
 
-    // 控制玩家的输入和物理行为
     private void SetControlsAndPhysics(bool enabled)
     {
         controlsEnabled = enabled;
-        // 禁用/启用 Rigidbody2D 的移动和碰撞
         if (rb != null)
         {
-            rb.simulated = enabled; // 禁用物理模拟
+            rb.simulated = enabled;
         }
         if (playerCollider != null)
         {
-            playerCollider.enabled = enabled; // 禁用碰撞体
+            playerCollider.enabled = enabled;
         }
-        // spriteRenderer.enabled = enabled; // 如果希望死亡时隐藏玩家
     }
 
-    // 监听 GameManager 的 OnPlayerNeedRespawn 事件
     private void HandlePlayerNeedsRespawn()
     {
-        SetPlayerDeathState(true); // 将玩家设置为死亡状态
-        // 此时玩家可能处于隐藏状态或死亡动画中，等待 GameManager 传送和重置
+        SetPlayerDeathState(true);
     }
 
-    // 玩家不再自行管理 RespawnPoint
-    // private void OnTriggerEnter2D(Collider2D other)
-    // {
-    //     if (other.CompareTag("RespawnPoint"))
-    //     {
-    //         // 这部分逻辑将由 GameManager 结合 SpawnPoint 脚本来管理
-    //         // player.SetRespawnPoint(other.transform.position) 不再需要
-    //     }
-    // }
+    // 碰撞检测，处理 DeathZone 和 SkillBall (主要修改部分)
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("DeathZone") || other.CompareTag("Trap"))
+        {
+            Debug.Log("Player entered DeathZone. Notifying GameManager.");
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.PlayerNeedsRespawn();
+            }
+        }
+        else if (other.CompareTag("SkillBall")) // 检测技能球
+        {
+            // 根据技能球的名字或组件判断是哪种技能球
+            // 例如，你可以给不同的技能球 GameObject 命名为 "FilterSkillBall" 和 "MaskSkillBall"
+            // 或者给它们挂载不同的组件来标识
+            if (other.gameObject.name.Contains("FilterSkillBall"))
+            {
+                UnlockSkill(SkillType.FilterSystem);
+                Destroy(other.gameObject); // 销毁技能球
+            }
+            else if (other.gameObject.name.Contains("MaskSkillBall"))
+            {
+                UnlockSkill(SkillType.MaskSystem);
+                Destroy(other.gameObject); // 销毁技能球
+            }
+            else
+            {
+                Debug.LogWarning($"Unknown SkillBall type encountered: {other.gameObject.name}");
+            }
+        }
+    }
 
-    /// <summary>
-    /// Sets the player's current skill color. This method can be called by UI Buttons.
-    /// </summary>
+    // 新增：解锁技能的方法
+    public void UnlockSkill(SkillType skillType)
+    {
+        bool wasAlreadyUnlocked = false;
+        if (skillType == SkillType.FilterSystem && !isFilterSkillUnlocked)
+        {
+            isFilterSkillUnlocked = true;
+            Debug.Log("Filter System Skill Unlocked!");
+            wasAlreadyUnlocked = false;
+        }
+        else if (skillType == SkillType.MaskSystem && !isMaskSkillUnlocked)
+        {
+            isMaskSkillUnlocked = true;
+            Debug.Log("Mask System Skill Unlocked!");
+            wasAlreadyUnlocked = false;
+        }
+        else
+        {
+            wasAlreadyUnlocked = true;
+            Debug.Log($"{skillType} Skill was already unlocked or invalid type.");
+        }
+
+        if (!wasAlreadyUnlocked)
+        {
+            // 如果这是解锁的第一个技能，则自动将其设为当前技能
+            if (!isFilterSkillUnlocked && skillType == SkillType.MaskSystem && !isMaskSkillUnlocked) // 之前没有技能，现在解锁了Mask
+            {
+                currentSkill = SkillType.MaskSystem;
+            }
+            else if (!isMaskSkillUnlocked && skillType == SkillType.FilterSystem && !isFilterSkillUnlocked) // 之前没有技能，现在解锁了Filter
+            {
+                currentSkill = SkillType.FilterSystem;
+            }
+            // 如果两个都解锁了或者已经有当前技能了，就不改变 currentSkill
+
+            OnSkillUnlocked?.Invoke(skillType); // 触发技能解锁事件
+        }
+    }
+
     public void SetSkillColor(FilterColor newColor)
     {
         if (currentColor == newColor) return;
 
         currentColor = newColor;
 
-        if (currentSkill == SkillType.FilterSystem && filterSystemComponent != null)
+        // 仅更新当前激活的技能，如果它被解锁的话
+        if (skillActive)
         {
-            filterSystemComponent.SetFilterColorAndTag(currentColor);
-        }
-        else if (currentSkill == SkillType.MaskSystem && maskSystemComponent != null)
-        {
-            maskSystemComponent.SetMaskColor(currentColor);
+            if (currentSkill == SkillType.FilterSystem && filterSystemComponent != null)
+            {
+                filterSystemComponent.SetFilterColorAndTag(currentColor);
+            }
+            else if (currentSkill == SkillType.MaskSystem && maskSystemComponent != null)
+            {
+                maskSystemComponent.SetMaskColor(currentColor);
+            }
         }
 
         OnColorChanged?.Invoke(currentColor);
@@ -384,7 +505,7 @@ public class PlayerController : MonoBehaviour
     public SkillType GetCurrentSkill() => currentSkill;
     public SkillType GetCurrentSkillType() => currentSkill;
     public bool IsSkillActive() => skillActive;
-    public void SetControlsEnabled(bool enabled) => controlsEnabled = enabled; // 外部可控是否启用控制
+    public void SetControlsEnabled(bool enabled) => controlsEnabled = enabled;
     public bool GetControlsEnabled() => controlsEnabled;
 
     // Debug visualization

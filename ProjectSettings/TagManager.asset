@@ -11,6 +11,7 @@ TagManager:
   - DeathZone
   - Trap
   - RespawnPoint
+  - SkillBall
   layers:
   - Default
   - TransparentFX
