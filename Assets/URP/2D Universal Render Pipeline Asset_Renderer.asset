@@ -15,10 +15,12 @@ MonoBehaviour:
   m_Active: 1
   settings:
     material: {fileID: 2100000, guid: 4ff03128b69c8ad4d81ee8dfa4ae8e25, type: 2}
-    distortion: 0.1
+    distortion: 0.162
     scanlineCount: 500
-    scanlineSpeed: 2
-    scanlineIntensity: 0.5
+    scanlineSpeed: 9
+    scanlineIntensity: 0.245
+    flashIntensity: 0
+    jitter: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
