@@ -13,11 +13,6 @@ public class MaskSystem : MonoBehaviour
     [SerializeField] private float maskAlpha = 0.4f;
     private Collider2D selfCollider;
 
-    [Header("VFX")]
-    [SerializeField] private bool playTransitionEffects = true;
-    [SerializeField] private Transform effectOriginPoint;
-
-    private CRTTrigger crtTrigger;
     void Awake()
     {
         // 在Awake或Start中获取当前物体的Collider2D组件
@@ -36,8 +31,6 @@ public class MaskSystem : MonoBehaviour
                 Debug.LogError("MaskSystem requires a SpriteRenderer component to change color.", this);
             }
         }
-
-        crtTrigger = FindFirstObjectByType<CRTTrigger>();
     }
 
     // 当有其他Collider2D进入当前Collider2D的触发区域时调用
@@ -81,28 +74,15 @@ public class MaskSystem : MonoBehaviour
 
     public void SetMaskColor(FilterColor col)
     {
-        // --- 新增逻辑：触发屏幕抽搐 ---
-        // 无论颜色是否相同，只要调用了设置颜色（通常意味着触发了某种反馈），就闪烁抽搐一下
-        if (crtTrigger != null)
-        {
-            crtTrigger.TriggerGlitch();
-        }
+        Color tempColor; // Declare once
 
-        // 播放原有切换特效
-        if (playTransitionEffects && FilterEffectManager2D.Instance != null)
-        {
-            Vector3 effectPosition = effectOriginPoint != null ?
-                effectOriginPoint.position : transform.position;
-            FilterEffectManager2D.Instance.PlayMaskTransition(col, effectPosition);
-        }
-
-        // 1. 设置 Tag
+        // 1. Set the GameObject's Tag based on the new color
         gameObject.tag = GameConstants.GetColorTag(col);
 
-        // 2. 设置颜色
+        // 2. Set the SpriteRenderer's color
         if (spriteRenderer != null)
         {
-            Color tempColor = GameConstants.GetColor(col);
+            tempColor = GameConstants.GetColor(col);
             tempColor.a = maskAlpha;
             spriteRenderer.color = tempColor;
         }
