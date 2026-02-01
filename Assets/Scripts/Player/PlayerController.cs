@@ -211,7 +211,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // 判断 canland 参数
-        bool canLand = velocityY < -5f || timeSinceYZero > 0.3f;
+        bool canLand = velocityY < -5f || timeSinceYZero > 0.1f;
         animator.SetBool("canland", canLand);
         if (!isGrounded && canLand)
             isGrounded = true;
