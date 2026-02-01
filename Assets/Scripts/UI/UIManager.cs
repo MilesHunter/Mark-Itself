@@ -28,6 +28,16 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button returnToMenuButton; // 返回主菜单按钮
     [SerializeField] private string mainMenuSceneName = "MainMenu"; // 主菜单场景名称
 
+    [Header("按钮图片设置")]
+    [SerializeField] private Sprite normalButtonSprite;   // 默认按钮图
+    [SerializeField] private Sprite selectedButtonSprite; // 被选中按钮图
+
+    [Header("按钮布局设置")]
+    [SerializeField] private Vector2 firstButtonPosition = new Vector2(0, 0);
+    [SerializeField] private float buttonSpacingY = 100f;
+    [SerializeField] private float selectedScale = 1.2f; // 被选中按钮放大倍数
+
+
     // 私有变量
     private List<Button> colorButtons = new List<Button>(); // 颜色按钮列表
     private FilterColor currentSelectedFilterColor; // 当前选择的FilterColor枚举
@@ -103,41 +113,61 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        // 清除现有按钮
+        // 清空现有按钮
         foreach (Transform child in placeRGB)
-        {
             Destroy(child.gameObject);
-        }
         colorButtons.Clear();
-        Debug.Log($"当前有{presetColors.Length}个颜色");
-        // 根据预设颜色数量生成按钮
+
         for (int i = 0; i < presetColors.Length; i++)
         {
             GameObject buttonObj = Instantiate(colorButtonPrefab, placeRGB);
             buttonObj.SetActive(true);
-            Button button = buttonObj.GetComponent<Button>();
 
+            Button button = buttonObj.GetComponent<Button>();
             if (button != null)
             {
-                // 设置按钮颜色
-                Image buttonImage = button.GetComponent<Image>();
-                FilterColor colorToAssign = presetColors[i]; // 捕获当前迭代的颜色
-
-                if (buttonImage != null)
+                RectTransform rt = buttonObj.GetComponent<RectTransform>();
+                if (rt != null)
                 {
-                    buttonImage.color = GameConstants.GetColor(colorToAssign);
-                    Debug.Log($"buttonImage Exists! The color is {buttonImage.color}");
+                    rt.anchorMin = new Vector2(0, 1);
+                    rt.anchorMax = new Vector2(0, 1);
+                    rt.pivot = new Vector2(0.5f, 1f);
+                    rt.anchoredPosition = firstButtonPosition + new Vector2(0, -i * buttonSpacingY);
                 }
 
-                // 修改：直接将 FilterColor 传递给一个新的 public 方法
+                // 获取 Image
+                Image img = buttonObj.GetComponentInChildren<Image>();
+                if (img != null && normalButtonSprite != null)
+                {
+                    img.sprite = normalButtonSprite;
+                    img.preserveAspect = true;
+                    img.SetNativeSize();
+                    img.color = Color.white;
+                }
+                // 在获取 Image 后，添加以下代码
+                Text txt = buttonObj.GetComponentInChildren<Text>();
+                if (txt != null) txt.gameObject.SetActive(false);
+
+                TMPro.TMP_Text tmpTxt = buttonObj.GetComponentInChildren<TMPro.TMP_Text>();
+                if (tmpTxt != null) tmpTxt.gameObject.SetActive(false);
+
+                // 添加呼吸动画
+                AnimatedButton animBtn = buttonObj.AddComponent<AnimatedButton>();
+                animBtn.hoverScale = 1.1f;
+                animBtn.pressScale = 0.9f;
+
+                // 点击事件
+                FilterColor colorToAssign = presetColors[i];
                 button.onClick.AddListener(() => SelectFilterColor(colorToAssign));
 
                 colorButtons.Add(button);
             }
         }
 
-        Debug.Log($"生成了 {presetColors.Length} 个颜色选择按钮");
+        // 初始化按钮状态
+        UpdateColorButtonStates();
     }
+
 
     private void SetupEventListeners()
     {
@@ -235,21 +265,30 @@ public class UIManager : MonoBehaviour
     {
         for (int i = 0; i < colorButtons.Count; i++)
         {
-            if (colorButtons[i] != null)
+            Button button = colorButtons[i];
+            if (button == null) continue;
+
+            RectTransform rt = button.GetComponent<RectTransform>();
+            Image img = button.GetComponentInChildren<Image>();
+            if (rt == null || img == null) continue;
+
+            if (presetColors[i] == currentSelectedFilterColor)
             {
-                Transform buttonTransform = colorButtons[i].transform;
-                if (presetColors[i] == currentSelectedFilterColor) // 直接比较FilterColor枚举
-                {
-                    buttonTransform.localScale = Vector3.one * 1.1f; // 选中时稍微放大
-                    // 可选：添加其他选中状态的视觉效果，例如修改Image的Sprite或添加边框
-                }
-                else
-                {
-                    buttonTransform.localScale = Vector3.one;
-                }
+                // 被选中：放大 + 替换图片
+                rt.localScale = Vector3.one * selectedScale;
+                if (selectedButtonSprite != null)
+                    img.sprite = selectedButtonSprite;
+            }
+            else
+            {
+                // 未选中：原始大小 + 默认图片
+                rt.localScale = Vector3.one;
+                if (normalButtonSprite != null)
+                    img.sprite = normalButtonSprite;
             }
         }
     }
+
 
     private void NotifySkillSystemColorChange(FilterColor newColor)
     {
