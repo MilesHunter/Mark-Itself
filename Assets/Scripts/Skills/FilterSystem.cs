@@ -8,6 +8,11 @@ using System.Collections.Generic;
 
 public class FilterSystem : MonoBehaviour
 {
+
+    [Header("VFX")]
+    [SerializeField] private bool playTransitionEffects = true;
+    [SerializeField] private Transform effectOriginPoint; // 特效起点（通常绑定到玩家）
+
     // 用于缓存找到的符合条件的GameObject，避免重复查找和内存抖动
     private List<GameObject> affectedObjects = new List<GameObject>();
     private float filterAlpha = 0.4f;
@@ -80,9 +85,16 @@ public class FilterSystem : MonoBehaviour
     {
         if (currentFilterColor != newColor)
         {
+            // 播放切换特效
+            if (playTransitionEffects && FilterEffectManager2D.Instance != null)
+            {
+                Vector3 effectPosition = effectOriginPoint != null ?
+                    effectOriginPoint.position : transform.position;
+                FilterEffectManager2D.Instance.PlayFilterTransition(newColor, effectPosition);
+            }
+
             Debug.Log($"External call: Changing Filter color from {currentFilterColor} to {newColor}.", this);
             currentFilterColor = newColor;
-            // 仅仅更新Filter自身的Tag和颜色，不触发场景扫描和物体激活状态改变
             UpdateSelfFilterSettings(currentFilterColor);
 
             // If the filter is currently active, we need to refresh the affected objects

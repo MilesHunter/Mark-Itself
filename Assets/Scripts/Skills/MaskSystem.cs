@@ -13,6 +13,9 @@ public class MaskSystem : MonoBehaviour
     [SerializeField] private float maskAlpha = 0.4f;
     private Collider2D selfCollider;
 
+    [Header("VFX")]
+    [SerializeField] private bool playTransitionEffects = true;
+    [SerializeField] private Transform effectOriginPoint;
     void Awake()
     {
         // 在Awake或Start中获取当前物体的Collider2D组件
@@ -74,6 +77,15 @@ public class MaskSystem : MonoBehaviour
 
     public void SetMaskColor(FilterColor col)
     {
+
+        // 播放切换特效
+        if (playTransitionEffects && FilterEffectManager2D.Instance != null)
+        {
+            Vector3 effectPosition = effectOriginPoint != null ?
+                effectOriginPoint.position : transform.position;
+            FilterEffectManager2D.Instance.PlayMaskTransition(col, effectPosition);
+        }
+
         Color tempColor; // Declare once
 
         // 1. Set the GameObject's Tag based on the new color
