@@ -13,6 +13,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Transform groundCheck;
     [SerializeField] private float groundCheckRadius = 0.2f;
     [SerializeField] private LayerMask groundLayerMask = 1;
+    [SerializeField] private float capsuleWidth;
+    [SerializeField] private float capsuleHeight;
 
     [Header("Skills")]
     [SerializeField] private SkillType currentSkill = SkillType.FilterSystem;
@@ -203,7 +205,13 @@ public class PlayerController : MonoBehaviour
 
     private void UpdateGroundedState()
     {
-        bool currentGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayerMask) != null;
+        // 定义胶囊的尺寸和方向
+        Vector2 capsuleSize = new Vector2(capsuleWidth, capsuleHeight); // 你需要定义 capsuleWidth 和 capsuleHeight
+        CapsuleDirection2D capsuleDirection = CapsuleDirection2D.Vertical; // 或者 CapsuleDirection2D.Horizontal
+
+        // 使用 OverlapCapsule 进行检测
+        bool currentGrounded = Physics2D.OverlapCapsule(groundCheck.position, capsuleSize, capsuleDirection, 0f, groundLayerMask) != null;
+
         if (currentGrounded && !isGrounded)
         {
             coyoteTimeCounter = coyoteTime;

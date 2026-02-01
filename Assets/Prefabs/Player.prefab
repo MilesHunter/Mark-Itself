@@ -360,6 +360,8 @@ MonoBehaviour:
   groundLayerMask:
     serializedVersion: 2
     m_Bits: 200
+  capsuleWidth: 0.3
+  capsuleHeight: 1.4
   currentSkill: 0
   currentColor: 0
   maskSystem: {fileID: 49811027119030974}
