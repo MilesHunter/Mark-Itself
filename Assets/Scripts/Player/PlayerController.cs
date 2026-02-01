@@ -3,14 +3,6 @@ using System.Collections.Generic;
 
 public class PlayerController : MonoBehaviour
 {
-    [Header("Death / Respawn")]
-    [SerializeField] private float deathRespawnDelay = 0.5f;
-
-    private bool isDead;
-    private bool isRespawning;
-    private Coroutine deathRoutine;
-    private RigidbodyType2D rbTypeBeforeDeath;
-
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float jumpForce = 12f;
@@ -32,6 +24,7 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D rb;
     private SpriteRenderer spriteRenderer;
     private Animator animator;
+    private Collider2D playerCollider; // 添加玩家碰撞体引用
 
     // Movement variables
     private float horizontalInput;
@@ -41,24 +34,18 @@ public class PlayerController : MonoBehaviour
     private float jumpBufferCounter;
     private bool controlsEnabled = true;
 
+    // Player State (新增)
+    public bool IsDead { get; private set; } = false; // 玩家生死状态
+
     // Skill system
     private bool skillActive = false;
     private FilterSystem filterSystemComponent; // Added to cache component
     private MaskSystem maskSystemComponent;     // Added to cache component
 
-
-    // Respawn system
-    private Vector3 currentRespawnPoint;
-
     // Animation hashes
     private static readonly int IsRunning = Animator.StringToHash("IsRunning");
     private static readonly int IsGrounded = Animator.StringToHash("IsGrounded");
     private static readonly int VerticalVelocity = Animator.StringToHash("VerticalVelocity");
-    private static readonly int CanLand = Animator.StringToHash("CanLand");
-    private static readonly int JumpTrigger = Animator.StringToHash("Jump");
-    private static readonly int DeathTrigger = Animator.StringToHash("Death");
-    private static readonly int RespawnTrigger = Animator.StringToHash("Respawn");
-
 
     public enum SkillType
     {
@@ -66,37 +53,54 @@ public class PlayerController : MonoBehaviour
         MaskSystem
     }
 
-    // Events
+    // Events (OnPlayerRespawn 含义变为“玩家已被重置并启用”)
     public System.Action<SkillType> OnSkillChanged;
     public System.Action<FilterColor> OnColorChanged;
-    public System.Action<Vector3> OnPlayerRespawn;
+    public System.Action OnPlayerResetAndEnabled; // 当玩家被重置并重新启用后触发
 
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
+        playerCollider = GetComponent<Collider2D>(); // 获取玩家碰撞体
 
-        // Get skill components
         if (filterSystem != null)
             filterSystemComponent = filterSystem.GetComponent<FilterSystem>();
         if (maskSystem != null)
             maskSystemComponent = maskSystem.GetComponent<MaskSystem>();
 
-        // Initialize skill systems with current color
-        // Now calling the SetFilterColorAndTag or SetMaskColor methods directly
         if (filterSystemComponent != null)
             filterSystemComponent.SetFilterColorAndTag(currentColor);
         if (maskSystemComponent != null)
-            maskSystemComponent.SetMaskColor(currentColor); // Ensure MaskSystem is also initialized
+            maskSystemComponent.SetMaskColor(currentColor);
 
-        // Set initial respawn point
-        currentRespawnPoint = transform.position;
+        // 初始化玩家为活着的，且控制已启用
+        IsDead = false;
+        SetControlsAndPhysics(true); // 确保初始时控制和物理是启用的
+    }
+
+    void OnEnable()
+    {
+        // 订阅 GameManager 的事件，当玩家被传送后进行重置
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnPlayerNeedRespawn += HandlePlayerNeedsRespawn;
+        }
+    }
+
+    void OnDisable()
+    {
+        // 取消订阅
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnPlayerNeedRespawn -= HandlePlayerNeedsRespawn;
+        }
     }
 
     void Update()
     {
-        if (isDead) return;
+        if (IsDead) return; // 死亡状态下不处理输入和动画更新
 
         HandleInput();
         UpdateGroundedState();
@@ -106,7 +110,12 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (isDead) return;
+        if (IsDead)
+        {
+            rb.velocity = Vector2.zero; // 死亡时停止移动
+            return;
+        }
+
         HandleMovement();
     }
 
@@ -114,51 +123,40 @@ public class PlayerController : MonoBehaviour
     {
         if (!controlsEnabled) return;
 
-        // Movement input
         horizontalInput = Input.GetAxisRaw("Horizontal");
 
-        // Jump input
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            Debug.Log("你跳啊");
             jumpBufferCounter = jumpBufferTime;
         }
 
-        // Skill switching
         if (Input.GetKeyDown(KeyCode.R))
         {
             SwitchSkill();
         }
 
-        // Skill activation
-        if (Input.GetMouseButtonDown(1)) // Right mouse button
+        if (Input.GetMouseButtonDown(1))
         {
-            Debug.Log($"skill!{skillActive}");
             if (skillActive)
             {
                 DeactivateSkill();
-                skillActive = false;
             }
             else
             {
                 ActivateSkill();
-                skillActive = true;
             }
         }
     }
 
     private void HandleMovement()
     {
-        // Horizontal movement
         rb.velocity = new Vector2(horizontalInput * moveSpeed, rb.velocity.y);
 
-        // Flip sprite based on movement direction
         if (horizontalInput > 0)
             spriteRenderer.flipX = false;
         else if (horizontalInput < 0)
             spriteRenderer.flipX = true;
 
-        // Jump logic with coyote time and jump buffering
         if (jumpBufferCounter > 0f && (isGrounded || coyoteTimeCounter > 0f))
         {
             Jump();
@@ -169,46 +167,28 @@ public class PlayerController : MonoBehaviour
 
     private void Jump()
     {
-        if (animator != null)
-                animator.SetTrigger(JumpTrigger);
         rb.velocity = new Vector2(rb.velocity.x, jumpForce);
-
     }
 
     private void UpdateGroundedState()
     {
-        // 先计算当前 grounded 状态
         bool currentGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayerMask) != null;
-        // 检测是否“刚落地”
         if (currentGrounded && !isGrounded)
         {
-            coyoteTimeCounter = coyoteTime;           // 刚落地 → 重置 coyote 为满值
-            Debug.Log("Coyote Reset on Land!");
+            coyoteTimeCounter = coyoteTime;
         }
-
-        // 更新 wasGrounded 为上一帧的 isGrounded
         wasGrounded = isGrounded;
-
-        // 最后才更新 isGrounded（给下一帧用）
         isGrounded = currentGrounded;
-
-        // Debug：状态变化时打印
-        if (isGrounded != wasGrounded)
-        {
-            Debug.Log($"Grounded Changed: {wasGrounded} → {isGrounded}");
-        }
     }
 
     private void UpdateTimers()
     {
-        // coyote time 只在空中衰减
         if (!isGrounded)
         {
             coyoteTimeCounter -= Time.deltaTime;
         }
         coyoteTimeCounter = Mathf.Max(0f, coyoteTimeCounter);
 
-        // jump buffer 始终衰减
         jumpBufferCounter = Mathf.Max(0f, jumpBufferCounter - Time.deltaTime);
     }
 
@@ -221,21 +201,16 @@ public class PlayerController : MonoBehaviour
 
         animator.SetFloat("VelocityX", velocityX);
         animator.SetFloat("VelocityY", velocityY);
-        animator.SetBool(IsGrounded, isGrounded);   
+        animator.SetBool(IsGrounded, isGrounded);
         animator.SetBool(IsRunning, Mathf.Abs(velocityX) > 0.1f && isGrounded);
-
     }
 
     private void SwitchSkill()
     {
-        // Deactivate current skill first
         DeactivateSkill();
 
-        // Switch to the other skill
         currentSkill = currentSkill == SkillType.FilterSystem ? SkillType.MaskSystem : SkillType.FilterSystem;
 
-        // Re-apply the current color to the newly active skill system
-        // This ensures the new skill system immediately takes on the player's chosen color.
         if (currentSkill == SkillType.FilterSystem && filterSystemComponent != null)
         {
             filterSystemComponent.SetFilterColorAndTag(currentColor);
@@ -245,9 +220,7 @@ public class PlayerController : MonoBehaviour
             maskSystemComponent.SetMaskColor(currentColor);
         }
 
-        // Notify listeners
         OnSkillChanged?.Invoke(currentSkill);
-
         Debug.Log($"Switched to skill: {currentSkill}");
     }
 
@@ -269,6 +242,7 @@ public class PlayerController : MonoBehaviour
                     maskSystem.SetActive(true);
                 break;
         }
+        Debug.Log($"Skill activated: {currentSkill}");
     }
 
     private void DeactivateSkill()
@@ -289,104 +263,88 @@ public class PlayerController : MonoBehaviour
                     maskSystem.SetActive(false);
                 break;
         }
+        Debug.Log($"Skill deactivated: {currentSkill}");
     }
 
-    public void SetRespawnPoint(Vector3 newRespawnPoint)
+    /// <summary>
+    /// 当玩家进入死亡区域或需要重置时，GameManager 会调用此方法。
+    /// 玩家的实际传送由 GameManager 处理。
+    /// </summary>
+    public void SetPlayerDeathState(bool dead)
     {
-        currentRespawnPoint = newRespawnPoint;
-        Debug.Log($"Respawn point set to: {newRespawnPoint}");
+        if (IsDead == dead) return;
+
+        IsDead = dead;
+        SetControlsAndPhysics(!dead); // 死亡时禁用控制和物理，否则启用
+
+        if (IsDead)
+        {
+            Debug.Log("Player is now Dead.");
+            DeactivateSkill(); // 死亡时禁用技能
+            // 这里可以触发死亡动画，停止所有声音等
+            // animator.SetTrigger("Die");
+        }
+        else
+        {
+            Debug.Log("Player is now Alive.");
+            // 玩家重生后的初始化逻辑，例如重置动画状态
+            // animator.SetTrigger("Respawn");
+        }
     }
 
-    public void RespawnPlayer()
+    // 新增：由 GameManager 在重生流程中调用，用于重置玩家状态并启用
+    public void ResetPlayerStateAndEnableControls()
     {
-        // Deactivate any active skills
-        DeactivateSkill();
+        Debug.Log("PlayerController: Resetting state and enabling controls.");
+        SetPlayerDeathState(false); // 设为活着
+        rb.velocity = Vector2.zero; // 重置速度
+                                    // 其他可能需要重置的状态：例如，玩家的动画状态，技能冷却等
 
-        // Reset velocity
-        rb.velocity = Vector2.zero;
-
-        // Move to respawn point
-        transform.position = currentRespawnPoint;
-
-        // Notify listeners
-        OnPlayerRespawn?.Invoke(currentRespawnPoint);
-
-        Debug.Log($"Player respawned at: {currentRespawnPoint}");
+        OnPlayerResetAndEnabled?.Invoke(); // 触发事件，通知其他组件玩家已重置并启用
     }
 
-    private void Die()
+    // 控制玩家的输入和物理行为
+    private void SetControlsAndPhysics(bool enabled)
     {
-        if (isDead) return;
-        isDead = true;
-
-        controlsEnabled = false;
-        horizontalInput = 0f;
-        jumpBufferCounter = 0f;
-        coyoteTimeCounter = 0f;
-
-        rb.velocity = Vector2.zero;
-
+        controlsEnabled = enabled;
+        // 禁用/启用 Rigidbody2D 的移动和碰撞
         if (rb != null)
         {
-            rbTypeBeforeDeath = rb.bodyType;
-            rb.bodyType = RigidbodyType2D.Static;
+            rb.simulated = enabled; // 禁用物理模拟
         }
-
-        if (animator != null)
+        if (playerCollider != null)
         {
-            animator.speed = 1f;
-            animator.SetTrigger(DeathTrigger);
+            playerCollider.enabled = enabled; // 禁用碰撞体
         }
-
-        if (deathRoutine != null)
-            StopCoroutine(deathRoutine);
-        deathRoutine = StartCoroutine(DeathSequence());
+        // spriteRenderer.enabled = enabled; // 如果希望死亡时隐藏玩家
     }
 
-    private System.Collections.IEnumerator DeathSequence()
+    // 监听 GameManager 的 OnPlayerNeedRespawn 事件
+    private void HandlePlayerNeedsRespawn()
     {
-        yield return new WaitForSeconds(deathRespawnDelay);
-
-        if (rb != null)
-            rb.bodyType = rbTypeBeforeDeath;
-
-        RespawnPlayer();
-
-        if (animator != null)
-        {
-            animator.speed = 1f;
-            animator.SetTrigger(RespawnTrigger);
-        }
-
-        isDead = false;
-        controlsEnabled = true;
-        deathRoutine = null;
+        SetPlayerDeathState(true); // 将玩家设置为死亡状态
+        // 此时玩家可能处于隐藏状态或死亡动画中，等待 GameManager 传送和重置
     }
 
-    // Called when player falls into trap or gets stuck
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        if (other.CompareTag("DeathZone") || other.CompareTag("Trap"))
-        {
-            Die();
-        }
-        else if (other.CompareTag("RespawnPoint"))
-        {
-            SetRespawnPoint(other.transform.position);
-        }
-    }
+    // 玩家不再自行管理 RespawnPoint
+    // private void OnTriggerEnter2D(Collider2D other)
+    // {
+    //     if (other.CompareTag("RespawnPoint"))
+    //     {
+    //         // 这部分逻辑将由 GameManager 结合 SpawnPoint 脚本来管理
+    //         // player.SetRespawnPoint(other.transform.position) 不再需要
+    //     }
+    // }
 
     /// <summary>
     /// Sets the player's current skill color. This method can be called by UI Buttons.
     /// </summary>
-    /// <param name="newColor">The new color to set for the player's skill.</param>
     public void SetSkillColor(FilterColor newColor)
     {
         if (currentColor == newColor) return;
 
         currentColor = newColor;
 
-        // Update the color of the currently active skill system
         if (currentSkill == SkillType.FilterSystem && filterSystemComponent != null)
         {
             filterSystemComponent.SetFilterColorAndTag(currentColor);
@@ -401,53 +359,20 @@ public class PlayerController : MonoBehaviour
     }
 
     // Public methods for external systems
-    public FilterColor GetCurrentColor()
-    {
-        return currentColor;
-    }
-
-    public SkillType GetCurrentSkill()
-    {
-        return currentSkill;
-    }
-
-    public SkillType GetCurrentSkillType()
-    {
-        return currentSkill;
-    }
-
-    public bool IsSkillActive()
-    {
-        return skillActive;
-    }
-
-    public Vector3 GetRespawnPoint()
-    {
-        return currentRespawnPoint;
-    }
-
-    public void SetControlsEnabled(bool enabled)
-    {
-        controlsEnabled = enabled;
-    }
-
-    public bool GetControlsEnabled()
-    {
-        return controlsEnabled;
-    }
+    public FilterColor GetCurrentColor() => currentColor;
+    public SkillType GetCurrentSkill() => currentSkill;
+    public SkillType GetCurrentSkillType() => currentSkill;
+    public bool IsSkillActive() => skillActive;
+    public void SetControlsEnabled(bool enabled) => controlsEnabled = enabled; // 外部可控是否启用控制
+    public bool GetControlsEnabled() => controlsEnabled;
 
     // Debug visualization
     private void OnDrawGizmosSelected()
     {
         if (groundCheck != null)
         {
-            bool grounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayerMask) != null;
-            Gizmos.color = grounded ? Color.green : Color.red;
+            Gizmos.color = isGrounded ? Color.green : Color.red;
             Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
         }
-
-        // Draw respawn point
-        Gizmos.color = Color.blue;
-        Gizmos.DrawWireCube(currentRespawnPoint, Vector3.one * 0.5f);
     }
 }

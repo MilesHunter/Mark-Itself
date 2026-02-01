@@ -148,10 +148,10 @@ public class UIManager : MonoBehaviour
         }
 
         // 脱离卡死按钮事件
-        if (escapeStuckButton != null)
-        {
-            escapeStuckButton.onClick.AddListener(EscapeStuck);
-        }
+        //if (escapeStuckButton != null)
+        //{
+        //    escapeStuckButton.onClick.AddListener(EscapeStuck);
+        //}
 
         // 返回主菜单按钮事件
         if (returnToMenuButton != null)
@@ -320,40 +320,40 @@ public class UIManager : MonoBehaviour
     }
 
     // 暂停界面功能
-    public void EscapeStuck()
-    {
-        Debug.Log("执行脱离卡死功能");
+    //public void EscapeStuck()
+    //{
+    //    Debug.Log("执行脱离卡死功能");
 
-        // 恢复游戏时间
-        ResumeGame();
+    //    // 恢复游戏时间
+    //    ResumeGame();
 
-        // 将玩家传送到最近的复活点
-        if (playerController != null)
-        {
-            // Assuming RespawnPoint.GetCurrentRespawnPosition() is a static method returning Vector3
-            // If it's not static, you'd need a reference to a RespawnPoint instance.
-            // For now, I'll assume it's static or you have a way to get this.
-            // If playerController also manages respawn points, you could call playerController.RespawnPlayer() directly.
-            Vector3 respawnPosition = playerController.GetRespawnPoint(); // Use playerController's stored respawn point
-            if (respawnPosition != Vector3.zero) // Check if the respawn point is valid
-            {
-                playerController.transform.position = respawnPosition;
+    //    // 将玩家传送到最近的复活点
+    //    if (playerController != null)
+    //    {
+    //        // Assuming RespawnPoint.GetCurrentRespawnPosition() is a static method returning Vector3
+    //        // If it's not static, you'd need a reference to a RespawnPoint instance.
+    //        // For now, I'll assume it's static or you have a way to get this.
+    //        // If playerController also manages respawn points, you could call playerController.RespawnPlayer() directly.
+    //        Vector3 respawnPosition = playerController.GetRespawnPoint(); // Use playerController's stored respawn point
+    //        if (respawnPosition != Vector3.zero) // Check if the respawn point is valid
+    //        {
+    //            playerController.transform.position = respawnPosition;
 
-                // 重置玩家物理状态
-                Rigidbody2D playerRb = playerController.GetComponent<Rigidbody2D>();
-                if (playerRb != null)
-                {
-                    playerRb.velocity = Vector2.zero;
-                }
+    //            // 重置玩家物理状态
+    //            Rigidbody2D playerRb = playerController.GetComponent<Rigidbody2D>();
+    //            if (playerRb != null)
+    //            {
+    //                playerRb.velocity = Vector2.zero;
+    //            }
 
-                Debug.Log($"玩家已传送到复活点: {respawnPosition}");
-            }
-            else
-            {
-                Debug.LogError("没有找到可用的复活点！");
-            }
-        }
-    }
+    //            Debug.Log($"玩家已传送到复活点: {respawnPosition}");
+    //        }
+    //        else
+    //        {
+    //            Debug.LogError("没有找到可用的复活点！");
+    //        }
+    //    }
+    //}
 
     public void ReturnToMainMenu()
     {
