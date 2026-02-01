@@ -19,7 +19,7 @@ public class MainMenuUIManager : MonoBehaviour
 
     public void startDraw()
     {
-        SceneManager.LoadSceneAsync("uiscene", LoadSceneMode.Additive);
+        SceneManager.LoadScene("uiscene");
     }
 
     public void exitGame()

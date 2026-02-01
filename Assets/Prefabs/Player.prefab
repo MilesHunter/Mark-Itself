@@ -355,11 +355,11 @@ MonoBehaviour:
   jumpForce: 6
   coyoteTime: 0.2
   jumpBufferTime: 0.2
-  groundCheck: {fileID: 0}
+  groundCheck: {fileID: 2633155328062870125}
   groundCheckRadius: 0.8
   groundLayerMask:
     serializedVersion: 2
-    m_Bits: 8
+    m_Bits: 200
   currentSkill: 0
   currentColor: 0
   maskSystem: {fileID: 49811027119030974}

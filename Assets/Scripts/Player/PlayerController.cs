@@ -154,6 +154,7 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.R))
         {
             SwitchSkill();
+            UIManager.Instance.UpdateSkillDisplay();
         }
 
         // 技能激活逻辑修改
