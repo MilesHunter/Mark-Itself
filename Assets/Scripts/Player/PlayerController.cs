@@ -256,25 +256,37 @@ public class PlayerController : MonoBehaviour
         animator.SetBool(IsRunning, Mathf.Abs(velocityX) > 0.1f && isGrounded);
     }
 
+    // 新增：封装逻辑以在切换技能或颜色时停用技能
+    private void EnsureSkillDeactivated()
+    {
+        if (skillActive)
+        {
+            DeactivateSkill();
+            Debug.Log("Deactivated active skill before color/skill change.");
+        }
+    }
+
     // 技能切换逻辑 (主要修改部分)
     private void SwitchSkill()
     {
+        // 确保在切换技能前，当前激活的技能被关闭
+        EnsureSkillDeactivated();
+
         int unlockedSkillCount = 0;
         if (isFilterSkillUnlocked) unlockedSkillCount++;
         if (isMaskSkillUnlocked) unlockedSkillCount++;
 
-        // 如果只有0个或1个技能解锁，则无法切换
         if (unlockedSkillCount <= 1)
         {
             Debug.Log("Cannot switch skills: Less than two skills unlocked.");
-            // 如果只有一个技能解锁，确保 currentSkill 就是那个已解锁的技能
             if (isFilterSkillUnlocked) currentSkill = SkillType.FilterSystem;
             else if (isMaskSkillUnlocked) currentSkill = SkillType.MaskSystem;
+
+            // 如果只有一个技能，并且它是激活状态，确保切换后保持激活 (取决于你的具体需求)
+            // 例如，如果之前 Filter 是激活的，现在只有一个 Mask 技能，那么 Mask 应该激活。
+            // 简单起见，这里默认切换前已关闭，切换后需要用户再次激活。
             return;
         }
-
-        // 停用当前技能
-        DeactivateSkill();
 
         // 切换到下一个已解锁的技能
         if (currentSkill == SkillType.FilterSystem)
@@ -283,11 +295,7 @@ public class PlayerController : MonoBehaviour
             {
                 currentSkill = SkillType.MaskSystem;
             }
-            else // 如果Filter是当前技能，但Mask未解锁，且有其他技能解锁，理论上不会走到这里，但为了健壮性
-            {
-                Debug.LogWarning("Unexpected skill state during switch, attempting to find next available.");
-                currentSkill = SkillType.FilterSystem; // 回退到自身，或者检查是否有其他技能
-            }
+            // else 理论上不会发生，因为 unlockedSkillCount > 1 保证了另一个技能已解锁
         }
         else if (currentSkill == SkillType.MaskSystem)
         {
@@ -295,18 +303,14 @@ public class PlayerController : MonoBehaviour
             {
                 currentSkill = SkillType.FilterSystem;
             }
-            else // 同上
-            {
-                Debug.LogWarning("Unexpected skill state during switch, attempting to find next available.");
-                currentSkill = SkillType.MaskSystem;
-            }
+            // else 同上
         }
 
-        // Re-apply the current color to the newly active skill system (if needed, though ActivateSkill handles activation)
-        // SetSkillColor(currentColor); // 这个方法会处理当前激活技能的颜色设置
-
         OnSkillChanged?.Invoke(currentSkill);
-        Debug.Log($"Switched to skill: {currentSkill}");
+        Debug.Log($"Switched to skill: {currentSkill}. New current skill is unlocked and ready to be activated.");
+
+        // 切换后，技能处于非激活状态，需要用户再次右键激活
+        skillActive = false;
     }
 
     private void ActivateSkill()
@@ -477,27 +481,35 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Sets the player's current skill color. This method can be called by UI Buttons.
+    /// </summary>
     public void SetSkillColor(FilterColor newColor)
     {
         if (currentColor == newColor) return;
 
+        // 确保在切换颜色前，当前激活的技能被关闭
+        // 这是为了防止旧颜色对应的标签物品没有被禁用就被新颜色覆盖
+        EnsureSkillDeactivated();
+
         currentColor = newColor;
 
-        // 仅更新当前激活的技能，如果它被解锁的话
-        if (skillActive)
+        // 技能系统组件的颜色总是更新，无论技能是否激活
+        // 这样可以确保当技能被重新激活时，它会使用正确的颜色
+        if (filterSystemComponent != null)
         {
-            if (currentSkill == SkillType.FilterSystem && filterSystemComponent != null)
-            {
-                filterSystemComponent.SetFilterColorAndTag(currentColor);
-            }
-            else if (currentSkill == SkillType.MaskSystem && maskSystemComponent != null)
-            {
-                maskSystemComponent.SetMaskColor(currentColor);
-            }
+            filterSystemComponent.SetFilterColorAndTag(currentColor);
+        }
+        if (maskSystemComponent != null)
+        {
+            maskSystemComponent.SetMaskColor(currentColor);
         }
 
+        // 注意：这里没有自动重新激活技能。如果需要，你可以在这里添加逻辑
+        // 例如：if (wasSkillActiveBeforeColorChange) { ActivateSkill(); }
+
         OnColorChanged?.Invoke(currentColor);
-        Debug.Log($"Skill color changed to: {currentColor}");
+        Debug.Log($"Skill color changed to: {currentColor}. Active skill (if any) will need to be re-activated.");
     }
 
     // Public methods for external systems
