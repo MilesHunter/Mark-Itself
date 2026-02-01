@@ -38,9 +38,8 @@ MonoBehaviour:
     hdrDebugViewPS: {fileID: 4800000, guid: 573620ae32aec764abd4d728906d2587, type: 3}
   m_RendererFeatures:
   - {fileID: 8973945694880408895}
-  - {fileID: 0}
   - {fileID: -7763859132836690543}
-  m_RendererFeatureMap: 3f25fe4010dc897c3ed698a9be2e93eb91c518dd403b4194
+  m_RendererFeatureMap: 3f25fe4010dc897c91c518dd403b4194
   m_UseNativeRenderPass: 0
   m_LayerMask:
     serializedVersion: 2
