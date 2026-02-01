@@ -3274,26 +3274,42 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 165395826954417174, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.23
+      objectReference: {fileID: 0}
     - target: {fileID: 202709675984675569, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
       propertyPath: mainCamera
       value: 
       objectReference: {fileID: 519420031}
-    - target: {fileID: 456229524584420993, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
-      propertyPath: m_Name
-      value: "LIGHTS-\u573A\u666F\u5149\u653E\u8FD9\u91CC"
-      objectReference: {fileID: 0}
+    - target: {fileID: 202709675984675569, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
+      propertyPath: playerTransform
+      value: 
+      objectReference: {fileID: 3763209578450023366}
     - target: {fileID: 646149015274889298, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
       propertyPath: mainCamera
       value: 
       objectReference: {fileID: 519420031}
+    - target: {fileID: 646149015274889298, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
+      propertyPath: parallaxSpeedX
+      value: -1.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 646149015274889298, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
+      propertyPath: parallaxSpeedY
+      value: -0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 646149015274889298, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
+      propertyPath: playerTransform
+      value: 
+      objectReference: {fileID: 3763209578450023366}
+    - target: {fileID: 890234005556737629, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.23
+      objectReference: {fileID: 0}
     - target: {fileID: 954817846615390187, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 365370409}
-    - target: {fileID: 973425488057622120, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -6
-      objectReference: {fileID: 0}
     - target: {fileID: 1500961964148474644, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
       propertyPath: m_Mesh
       value: 
@@ -3302,6 +3318,18 @@ PrefabInstance:
       propertyPath: mainCamera
       value: 
       objectReference: {fileID: 519420031}
+    - target: {fileID: 1669970451112405932, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
+      propertyPath: parallaxSpeedX
+      value: 0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 1669970451112405932, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
+      propertyPath: parallaxSpeedY
+      value: -0.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 1669970451112405932, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
+      propertyPath: playerTransform
+      value: 
+      objectReference: {fileID: 3763209578450023366}
     - target: {fileID: 2354745281664858072, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
       propertyPath: m_Name
       value: Background
@@ -3310,21 +3338,37 @@ PrefabInstance:
       propertyPath: mainCamera
       value: 
       objectReference: {fileID: 519420031}
+    - target: {fileID: 2746885136747444117, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
+      propertyPath: parallaxSpeedX
+      value: 0.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 2746885136747444117, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
+      propertyPath: parallaxSpeedY
+      value: -0.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 2746885136747444117, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
+      propertyPath: playerTransform
+      value: 
+      objectReference: {fileID: 3763209578450023366}
+    - target: {fileID: 2856172047842760984, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.23
+      objectReference: {fileID: 0}
     - target: {fileID: 3135170818072131001, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 2127001465}
     - target: {fileID: 4202841314108763380, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1.9416295
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4202841314108763380, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.14971323
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4202841314108763380, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 1.0531113
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4202841314108763380, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
       propertyPath: m_LocalRotation.w
@@ -3354,21 +3398,45 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5401909349543593759, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.23
+      objectReference: {fileID: 0}
+    - target: {fileID: 6464413040288408682, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.23
+      objectReference: {fileID: 0}
     - target: {fileID: 6689807949701905926, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
       propertyPath: mainCamera
       value: 
       objectReference: {fileID: 519420031}
+    - target: {fileID: 6689807949701905926, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
+      propertyPath: parallaxSpeedX
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 6689807949701905926, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
+      propertyPath: parallaxSpeedY
+      value: -0.01
+      objectReference: {fileID: 0}
+    - target: {fileID: 6689807949701905926, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
+      propertyPath: playerTransform
+      value: 
+      objectReference: {fileID: 3763209578450023366}
     - target: {fileID: 7110472407489867554, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
       propertyPath: mainCamera
       value: 
       objectReference: {fileID: 519420031}
-    - target: {fileID: 7618561580326978104, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -6.32
+    - target: {fileID: 7110472407489867554, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
+      propertyPath: parallaxSpeedX
+      value: 0.9
       objectReference: {fileID: 0}
-    - target: {fileID: 7618561580326978104, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
+    - target: {fileID: 7110472407489867554, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
+      propertyPath: playerTransform
+      value: 
+      objectReference: {fileID: 3763209578450023366}
+    - target: {fileID: 7279056215347407210, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -3.56
+      value: 0.23
       objectReference: {fileID: 0}
     - target: {fileID: 8029804143153698599, guid: 8bb3034abfddb654a9f9cd4291dfd72e, type: 3}
       propertyPath: m_Mesh

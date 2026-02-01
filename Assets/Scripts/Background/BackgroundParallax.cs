@@ -13,11 +13,15 @@ public class BackgroundParallax : MonoBehaviour
 {
     ///将场景的摄像机挂载到此处
     [SerializeField] private Camera mainCamera;
+    [SerializeField] private Transform playerTransform;
     private Transform cameraTransform;
     private Vector3 lastCameraPosition;
 
+    private float lastPlayerY;
+
     // 速度参数
-    [SerializeField] private float parallaxSpeed = 1f;
+    [SerializeField] private float parallaxSpeedX = 1f;
+    [SerializeField] private float parallaxSpeedY = 0f;
 
     // Start is called before the first frame update
     void Start()
@@ -31,6 +35,9 @@ public class BackgroundParallax : MonoBehaviour
             cameraTransform = mainCamera.transform;
             lastCameraPosition = cameraTransform.position;
         }
+
+        if (playerTransform != null)
+            lastPlayerY = playerTransform.position.y;
     }
 
     void LateUpdate()
@@ -40,8 +47,24 @@ public class BackgroundParallax : MonoBehaviour
 
     private void ParallaxMove()
     {
-        Vector3 delta = cameraTransform.position - lastCameraPosition;
-        transform.position += delta * parallaxSpeed;
+        if (cameraTransform == null) return;
+
+        Vector3 deltaCamera = cameraTransform.position - lastCameraPosition;
+
+        float deltaPlayerY = 0f;
+        if (playerTransform != null)
+        {
+            deltaPlayerY = playerTransform.position.y - lastPlayerY;
+            lastPlayerY = playerTransform.position.y;
+        }
+
+        Vector3 move = new Vector3(
+            deltaCamera.x * parallaxSpeedX,
+            deltaPlayerY * parallaxSpeedY,
+            0f
+        );
+
+        transform.position += move;
         lastCameraPosition = cameraTransform.position;
     }
 }
