@@ -97,6 +97,18 @@ public class FilterSystem : MonoBehaviour
             currentFilterColor = newColor;
             UpdateSelfFilterSettings(currentFilterColor);
 
+
+            // --- 新增逻辑：触发屏幕抽搐 ---
+            CRTTrigger trigger = FindFirstObjectByType<CRTTrigger>();
+            if (trigger != null)
+            {
+                trigger.TriggerGlitch();
+            }
+
+            currentFilterColor = newColor;
+            UpdateSelfFilterSettings(currentFilterColor);
+
+
             // If the filter is currently active, we need to refresh the affected objects
             // to reflect the new color immediately.
             if (gameObject.activeSelf)
@@ -109,6 +121,7 @@ public class FilterSystem : MonoBehaviour
                 FindAndCacheAffectedObjects(); // Rescan with new tag
                 SetInteractionObjectsActive(false); // Apply new state (disable for the new tag)
             }
+
         }
     }
 
