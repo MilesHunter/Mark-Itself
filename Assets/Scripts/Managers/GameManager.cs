@@ -3,9 +3,6 @@ using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic; // 添加这个命名空间
 
-// 注意：这里假设 PlayerController 有一个 SetState 方法，
-// 或者你可以通过其他方式来判断玩家的死亡状态。
-// 如果 PlayerController 负责判断死亡，那么 GameManager 只需要监听其死亡事件。
 
 public class GameManager : MonoBehaviour
 {
@@ -54,7 +51,7 @@ public class GameManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
+            //DontDestroyOnLoad(gameObject);
             InitializeGame();
         }
         else
@@ -253,7 +250,7 @@ public class GameManager : MonoBehaviour
     }
 
     // 新增：传送到左侧最近的重生点
-    private void TeleportPlayerToNearestLeftRespawnPoint()
+    public void TeleportPlayerToNearestLeftRespawnPoint()
     {
         if (player == null || allRespawnPoints.Count == 0)
         {

@@ -178,10 +178,10 @@ public class UIManager : MonoBehaviour
         }
 
         // 脱离卡死按钮事件
-        //if (escapeStuckButton != null)
-        //{
-        //    PlayerController.isDead = true;
-        //}
+        if (escapeStuckButton != null)
+        {
+            GameManager.Instance.TeleportPlayerToNearestLeftRespawnPoint();
+        }
 
         // 返回主菜单按钮事件
         if (returnToMenuButton != null)

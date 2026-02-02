@@ -15,6 +15,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private LayerMask groundLayerMask = 1;
     [SerializeField] private float capsuleWidth;
     [SerializeField] private float capsuleHeight;
+    [SerializeField] private float groundCheckDistance = 0.05f;
 
     [Header("Skills")]
     [SerializeField] private SkillType currentSkill = SkillType.FilterSystem;
@@ -205,17 +206,31 @@ public class PlayerController : MonoBehaviour
 
     private void UpdateGroundedState()
     {
-        // 定义胶囊的尺寸和方向
-        Vector2 capsuleSize = new Vector2(capsuleWidth, capsuleHeight); // 你需要定义 capsuleWidth 和 capsuleHeight
-        CapsuleDirection2D capsuleDirection = CapsuleDirection2D.Vertical; // 或者 CapsuleDirection2D.Horizontal
+        // 1. 设置过滤器：包含你勾选的所有层级
+        ContactFilter2D filter = new ContactFilter2D();
+        filter.SetLayerMask(groundLayerMask);
+        filter.useLayerMask = true;
 
-        // 使用 OverlapCapsule 进行检测
-        bool currentGrounded = Physics2D.OverlapCapsule(groundCheck.position, capsuleSize, capsuleDirection, 0f, groundLayerMask) != null;
+        // 关键点：如果你有单向平台（PlatformEffector2D），
+        // 建议加上下面这一行，让检测能触发 Effector 的逻辑
+        filter.useTriggers = false;
 
+        // 2. 准备接收结果的数组
+        RaycastHit2D[] results = new RaycastHit2D[1];
+
+        // 3. 执行 Cast
+        // 它会检查当前 Collider 向下移动 groundCheckDistance 距离内，是否碰到了 groundLayerMask 中的任何一层
+        int count = playerCollider.Cast(Vector2.down, filter, results, groundCheckDistance);
+
+        // 只要碰到其中一个层级，count 就会大于 0
+        bool currentGrounded = count > 0;
+
+        // 4. 处理 Coyote Time 逻辑
         if (currentGrounded && !isGrounded)
         {
             coyoteTimeCounter = coyoteTime;
         }
+
         wasGrounded = isGrounded;
         isGrounded = currentGrounded;
     }
